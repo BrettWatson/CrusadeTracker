@@ -1,0 +1,51 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36518.9 d17.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CrusadeTracker.Domain", "CrusadeTracker.Domain\CrusadeTracker.Domain.csproj", "{D7D288D4-97A4-4EAF-93EF-E42D3AE6D574}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CrusadeTracker.Infrastructure", "CrusadeTracker.Infrastructure\CrusadeTracker.Infrastructure.csproj", "{A87C6314-E9F4-409D-8548-080B11764BEC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CrusadeTracker.Application", "CrusadeTracker.Application\CrusadeTracker.Application.csproj", "{A321C5CE-F31C-4E96-8939-7553794F2F8D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CrusadeTracker.API", "CrusadeTracker.API\CrusadeTracker.API.csproj", "{8CA4D93F-7E15-46C2-A6AD-C7105F286AEC}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D7D288D4-97A4-4EAF-93EF-E42D3AE6D574}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D7D288D4-97A4-4EAF-93EF-E42D3AE6D574}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D7D288D4-97A4-4EAF-93EF-E42D3AE6D574}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D7D288D4-97A4-4EAF-93EF-E42D3AE6D574}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A87C6314-E9F4-409D-8548-080B11764BEC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A87C6314-E9F4-409D-8548-080B11764BEC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A87C6314-E9F4-409D-8548-080B11764BEC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A87C6314-E9F4-409D-8548-080B11764BEC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A321C5CE-F31C-4E96-8939-7553794F2F8D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A321C5CE-F31C-4E96-8939-7553794F2F8D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A321C5CE-F31C-4E96-8939-7553794F2F8D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A321C5CE-F31C-4E96-8939-7553794F2F8D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8CA4D93F-7E15-46C2-A6AD-C7105F286AEC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8CA4D93F-7E15-46C2-A6AD-C7105F286AEC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8CA4D93F-7E15-46C2-A6AD-C7105F286AEC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8CA4D93F-7E15-46C2-A6AD-C7105F286AEC}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{D7D288D4-97A4-4EAF-93EF-E42D3AE6D574} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{A87C6314-E9F4-409D-8548-080B11764BEC} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{A321C5CE-F31C-4E96-8939-7553794F2F8D} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{8CA4D93F-7E15-46C2-A6AD-C7105F286AEC} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {1953030A-DE3B-46D0-AC93-04F9B1BCACB7}
+	EndGlobalSection
+EndGlobal
