@@ -1,5 +1,6 @@
 using CrusadeTracker.Domain.Common;
 using CrusadeTracker.Domain.Forces;
+using CrusadeTracker.Domain.Forces.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -21,32 +22,35 @@ public sealed class CrusadeForceConfig : IEntityTypeConfiguration<CrusadeForce>
         builder.Property(x => x.Name).HasMaxLength(200).IsRequired();
         builder.Property(x => x.Faction).HasMaxLength(200).IsRequired();
 
-        // Points limit (SupplyLimit VO)
-        builder.OwnsOne(x => x.PointsLimit, pl =>
-        {
-            pl.Property(p => p.Value).HasColumnName("PointsLimit").IsRequired();
-        });
+        // Points limit (SupplyLimit VO) - use value conversion for structs
+        builder.Property(x => x.PointsLimit)
+            .HasConversion(
+                sl => sl.Value,
+                v => new SupplyLimit(v))
+            .HasColumnName("PointsLimit")
+            .IsRequired();
 
-        // Units: map backing field "_units"
-        builder.Metadata.FindNavigation(nameof(CrusadeForce.Units))!
-            .SetPropertyAccessMode(PropertyAccessMode.Field);
 
-        builder.HasMany<CrusadeUnit>("_units")
-            .WithOne()
-            .OnDelete(DeleteBehavior.Cascade);
+        //// Units: map backing field "_units"
+        //builder.Metadata.FindNavigation(nameof(CrusadeForce.Units))!
+        //    .SetPropertyAccessMode(PropertyAccessMode.Field);
 
-        // Applied battle ids: backing field "_battles"
-        builder.OwnsMany<BattleId>("_battles", b =>
-        {
-            b.ToTable("CrusadeForceBattles");
-            b.WithOwner().HasForeignKey("ForceId");
+        //builder.HasMany<CrusadeUnit>("_units")
+        //    .WithOne()
+        //    .OnDelete(DeleteBehavior.Cascade);
 
-            b.Property<Guid>("Id");
-            b.HasKey("Id");
+        //// Applied battle ids: backing field "_battles"
+        //builder.OwnsMany<BattleId>("_battleIds", b =>
+        //{
+        //    b.ToTable("CrusadeForceBattles");
+        //    b.WithOwner().HasForeignKey("ForceId");
 
-            b.Property(x => x.Value)
-              .HasColumnName("BattleId")
-              .IsRequired();
-        });
+        //    b.Property<Guid>("Id");
+        //    b.HasKey("Id");
+
+        //    b.Property(x => x.Value)
+        //      .HasColumnName("BattleId")
+        //      .IsRequired();
+        //});
     }
 }
