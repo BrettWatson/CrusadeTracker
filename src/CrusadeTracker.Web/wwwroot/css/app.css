@@ -1,0 +1,132 @@
+/* ===== CRUSADE TRACKER THEME ===== */
+/* Dark military theme with gold accents - Compatible with MudBlazor */
+
+:root {
+    --ct-bg-dark: #1a1a2e;
+    --ct-bg-darker: #0f0f1a;
+    --ct-bg-card: #252540;
+    --ct-bg-card-hover: #2d2d4a;
+    --ct-gold: #d4af37;
+    --ct-gold-light: #f4d03f;
+    --ct-gold-dark: #b8960c;
+    --ct-red: #8b0000;
+    --ct-red-light: #c41e3a;
+    --ct-text: #e8e8e8;
+    --ct-text-muted: #9a9ab0;
+    --ct-border: #3a3a5c;
+}
+
+html, body {
+    font-family: 'Roboto', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--ct-bg-dark) !important;
+    color: var(--ct-text) !important;
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+}
+
+/* ===== LOADING ===== */
+.loading-progress {
+    position: relative;
+    display: block;
+    width: 8rem;
+    height: 8rem;
+    margin: 20vh auto 1rem auto;
+}
+
+.loading-progress circle {
+    fill: none;
+    stroke: var(--ct-border);
+    stroke-width: 0.6rem;
+    transform-origin: 50% 50%;
+    transform: rotate(-90deg);
+}
+
+.loading-progress circle:last-child {
+    stroke: var(--ct-gold);
+    stroke-dasharray: calc(3.141 * var(--blazor-load-percentage, 0%) * 0.8), 500%;
+    transition: stroke-dasharray 0.05s ease-in-out;
+}
+
+.loading-progress-text {
+    position: absolute;
+    text-align: center;
+    font-weight: bold;
+    inset: calc(20vh + 3.25rem) 0 auto 0.2rem;
+    color: var(--ct-gold);
+}
+
+.loading-progress-text:after {
+    content: var(--blazor-load-percentage-text, "Loading");
+}
+
+/* ===== ERROR UI ===== */
+#blazor-error-ui {
+    background: var(--ct-red);
+    bottom: 0;
+    box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.2);
+    box-sizing: border-box;
+    display: none;
+    left: 0;
+    padding: 0.6rem 1.25rem 0.7rem 1.25rem;
+    position: fixed;
+    width: 100%;
+    z-index: 1000;
+    color: white;
+}
+
+#blazor-error-ui .dismiss {
+    cursor: pointer;
+    position: absolute;
+    right: 0.75rem;
+    top: 0.5rem;
+}
+
+.blazor-error-boundary {
+    background: var(--ct-red);
+    padding: 1rem;
+    color: white;
+    border-radius: 4px;
+}
+
+.blazor-error-boundary::after {
+    content: "An error has occurred."
+}
+
+/* ===== VALIDATION ===== */
+.valid.modified:not([type=checkbox]) {
+    outline: 1px solid #28a745;
+}
+
+.invalid {
+    outline: 1px solid var(--ct-red-light);
+}
+
+.validation-message {
+    color: var(--ct-red-light);
+}
+
+/* ===== MUDBLAZOR OVERRIDES ===== */
+/* These ensure MudBlazor components match our theme */
+
+.mud-theme-dark {
+    --mud-palette-background: #1a1a2e;
+    --mud-palette-surface: #252540;
+    --mud-palette-drawer-background: #0f0f1a;
+    --mud-palette-appbar-background: #0f0f1a;
+}
+
+/* Ensure proper text color in MudBlazor components */
+.mud-typography {
+    color: inherit;
+}
+
+/* Custom card styling for force cards */
+.mud-card {
+    transition: all 0.2s ease;
+}
+
+/* Input styling */
+input, select, textarea {
+    color-scheme: dark;
+}

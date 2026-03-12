@@ -1,0 +1,95 @@
+@inherits LayoutComponentBase
+
+<MudThemeProvider Theme="_theme" IsDarkMode="true" />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<MudLayout>
+    <MudAppBar Elevation="1" Color="Color.Dark">
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@ToggleDrawer" />
+        <MudText Typo="Typo.h5" Class="ml-3" Style="color: #d4af37; font-weight: 600;">Crusade Tracker</MudText>
+        <MudSpacer />
+        <AuthorizeView>
+            <Authorized>
+                <MudText Class="mr-3">Welcome, @context.User.Identity?.Name</MudText>
+                <MudButton Variant="Variant.Text" Color="Color.Warning" OnClick="HandleLogout">Logout</MudButton>
+            </Authorized>
+            <NotAuthorized>
+                <MudButton Variant="Variant.Text" Color="Color.Warning" Href="/login">Login</MudButton>
+                <MudButton Variant="Variant.Outlined" Color="Color.Warning" Href="/register" Class="ml-2">Register</MudButton>
+            </NotAuthorized>
+        </AuthorizeView>
+    </MudAppBar>
+
+    <MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
+        <MudNavMenu>
+            <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Home</MudNavLink>
+            <AuthorizeView>
+                <Authorized>
+                    <MudNavLink Href="/forces" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Shield">My Forces</MudNavLink>
+                    <MudNavLink Href="/battles" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.HistoryEdu">My Battles</MudNavLink>
+                    <MudDivider Class="my-2" />
+                    <MudNavLink Href="/forces/create" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Add">New Force</MudNavLink>
+                    <MudNavLink Href="/battles/create" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.AddCircle">Record Battle</MudNavLink>
+                </Authorized>
+            </AuthorizeView>
+        </MudNavMenu>
+    </MudDrawer>
+
+    <MudMainContent Class="pt-16 px-4">
+        <MudContainer MaxWidth="MaxWidth.Large" Class="my-4">
+            @Body
+        </MudContainer>
+    </MudMainContent>
+</MudLayout>
+
+@code {
+    [Inject]
+    private IAuthService AuthService { get; set; } = default!;
+
+    [Inject]
+    private NavigationManager Navigation { get; set; } = default!;
+
+    private bool _drawerOpen = true;
+
+    private MudTheme _theme = new MudTheme()
+    {
+        PaletteLight = new PaletteLight()
+        {
+            Primary = "#d4af37",
+            Secondary = "#252540",
+            Background = "#1a1a2e",
+            Surface = "#252540",
+            AppbarBackground = "#0f0f1a",
+            DrawerBackground = "#0f0f1a",
+            TextPrimary = "#e8e8e8",
+            TextSecondary = "#9a9ab0"
+        },
+        PaletteDark = new PaletteDark()
+        {
+            Primary = "#d4af37",
+            PrimaryContrastText = "#1a1a2e",
+            Secondary = "#252540",
+            Background = "#1a1a2e",
+            Surface = "#252540",
+            AppbarBackground = "#0f0f1a",
+            DrawerBackground = "#0f0f1a",
+            TextPrimary = "#e8e8e8",
+            TextSecondary = "#9a9ab0",
+            ActionDefault = "#d4af37",
+            ActionDisabled = "#9a9ab0"
+        }
+    };
+
+    private void ToggleDrawer()
+    {
+        _drawerOpen = !_drawerOpen;
+    }
+
+    private async Task HandleLogout()
+    {
+        await AuthService.LogoutAsync();
+        Navigation.NavigateTo("/login");
+    }
+}

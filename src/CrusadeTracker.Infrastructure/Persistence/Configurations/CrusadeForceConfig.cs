@@ -2,7 +2,9 @@ using CrusadeTracker.Domain.Common;
 using CrusadeTracker.Domain.Forces;
 using CrusadeTracker.Domain.Forces.ValueObjects;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace CrusadeTracker.Infrastructure.Persistence.Configurations;
 
@@ -30,27 +32,36 @@ public sealed class CrusadeForceConfig : IEntityTypeConfiguration<CrusadeForce>
             .HasColumnName("PointsLimit")
             .IsRequired();
 
+        // Units: map backing field "_units"
+        builder.HasMany(x => x.Units)
+            .WithOne()
+            .HasForeignKey("ForceId")
+            .OnDelete(DeleteBehavior.Cascade);
 
-        //// Units: map backing field "_units"
-        //builder.Metadata.FindNavigation(nameof(CrusadeForce.Units))!
-        //    .SetPropertyAccessMode(PropertyAccessMode.Field);
+        builder.Metadata.FindNavigation(nameof(CrusadeForce.Units))!
+            .SetPropertyAccessMode(PropertyAccessMode.Field);
 
-        //builder.HasMany<CrusadeUnit>("_units")
-        //    .WithOne()
-        //    .OnDelete(DeleteBehavior.Cascade);
+        // Battles collection - ignore the public property, configure backing field
+        builder.Ignore(x => x.Battles);
 
-        //// Applied battle ids: backing field "_battles"
-        //builder.OwnsMany<BattleId>("_battleIds", b =>
-        //{
-        //    b.ToTable("CrusadeForceBattles");
-        //    b.WithOwner().HasForeignKey("ForceId");
+        var battleIdsConverter = new ValueConverter<HashSet<BattleId>, string>(
+            v => string.Join(',', v.Select(b => b.Value)),
+            v => string.IsNullOrEmpty(v)
+                ? new HashSet<BattleId>()
+                : v.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                    .Select(g => new BattleId(Guid.Parse(g)))
+                    .ToHashSet());
 
-        //    b.Property<Guid>("Id");
-        //    b.HasKey("Id");
+        var battleIdsComparer = new ValueComparer<HashSet<BattleId>>(
+            (c1, c2) => c1!.SetEquals(c2!),
+            c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
+            c => c.ToHashSet());
 
-        //    b.Property(x => x.Value)
-        //      .HasColumnName("BattleId")
-        //      .IsRequired();
-        //});
+        builder.Property<HashSet<BattleId>>("_battles")
+            .HasField("_battles")
+            .UsePropertyAccessMode(PropertyAccessMode.Field)
+            .HasColumnName("BattleIds")
+            .HasConversion(battleIdsConverter)
+            .Metadata.SetValueComparer(battleIdsComparer);
     }
 }

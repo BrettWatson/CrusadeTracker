@@ -1,0 +1,103 @@
+@page "/battles"
+@attribute [Authorize]
+@inject BattleService BattleService
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+
+@using CrusadeTracker.Application.Battles.DTOs
+
+<PageTitle>My Battles - Crusade Tracker</PageTitle>
+
+<MudText Typo="Typo.h4" Class="mb-4" Style="color: #d4af37;">My Battles</MudText>
+
+@if (_isLoading)
+{
+    <MudProgressCircular Color="Color.Warning" Indeterminate="true" />
+}
+else if (_battles is null || _battles.Count == 0)
+{
+    <MudAlert Severity="Severity.Info" Class="mb-4">
+        You haven't participated in any battles yet. <MudLink Href="/battles/create" Color="Color.Warning">Record your first battle</MudLink> to get started!
+    </MudAlert>
+}
+else
+{
+    <MudTable Items="@_battles" Breakpoint="Breakpoint.Sm" Style="background: #252540;">
+        <HeaderContent>
+            <MudTh>Date</MudTh>
+            <MudTh>Mission</MudTh>
+            <MudTh>Participants</MudTh>
+            <MudTh>Status</MudTh>
+            <MudTh>Actions</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Date">@context.Date.ToString("MMM d, yyyy")</MudTd>
+            <MudTd DataLabel="Mission">@context.Mission</MudTd>
+            <MudTd DataLabel="Participants">
+                @foreach (var participant in context.Participants)
+                {
+                    <MudChip T="string" Size="Size.Small"
+                             Color="@GetResultColor(participant.Result)"
+                             Class="mr-1 mb-1">
+                        @(participant.ForceNameSnapshot ?? "Unknown Force")
+                    </MudChip>
+                }
+            </MudTd>
+            <MudTd DataLabel="Status">
+                @if (context.IsFinalized)
+                {
+                    <MudChip T="string" Size="Size.Small" Color="Color.Success">Finalized</MudChip>
+                }
+                else
+                {
+                    <MudChip T="string" Size="Size.Small" Color="Color.Warning">In Progress</MudChip>
+                }
+            </MudTd>
+            <MudTd DataLabel="Actions">
+                <MudButton Variant="Variant.Outlined" Color="Color.Warning" Size="Size.Small" Href="@($"/battles/{context.Id}")">
+                    View
+                </MudButton>
+            </MudTd>
+        </RowTemplate>
+    </MudTable>
+}
+
+<MudFab Color="Color.Warning" StartIcon="@Icons.Material.Filled.Add" Style="position: fixed; bottom: 30px; right: 30px;" Href="/battles/create" />
+
+@code {
+    private List<BattleResponse>? _battles;
+    private bool _isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadBattles();
+    }
+
+    private async Task LoadBattles()
+    {
+        _isLoading = true;
+        try
+        {
+            _battles = await BattleService.GetBattlesAsync();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading battles: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private Color GetResultColor(string result)
+    {
+        return result.ToLower() switch
+        {
+            "victory" => Color.Success,
+            "defeat" => Color.Error,
+            "draw" => Color.Default,
+            _ => Color.Default
+        };
+    }
+}

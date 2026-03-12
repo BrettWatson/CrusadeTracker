@@ -1,0 +1,156 @@
+@page "/register"
+@inject IAuthService AuthService
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+
+<PageTitle>Register - Crusade Tracker</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Small">
+    <MudPaper Class="pa-6 mt-8" Elevation="3" Style="background: #252540;">
+        <MudText Typo="Typo.h4" Class="mb-4" Style="color: #d4af37;">Create Account</MudText>
+
+        <MudForm @ref="_form" @bind-IsValid="@_formIsValid">
+            <MudTextField @bind-Value="_registerModel.Email"
+                          Label="Email"
+                          Variant="Variant.Outlined"
+                          InputType="InputType.Email"
+                          Required="true"
+                          RequiredError="Email is required"
+                          Validation="@(new EmailAddressAttribute() { ErrorMessage = "Invalid email format" })"
+                          Class="mb-3" />
+
+            <MudTextField @bind-Value="_registerModel.Username"
+                          Label="Username"
+                          Variant="Variant.Outlined"
+                          Required="true"
+                          RequiredError="Username is required"
+                          Class="mb-3" />
+
+            <MudTextField @bind-Value="_registerModel.Password"
+                          Label="Password"
+                          Variant="Variant.Outlined"
+                          InputType="@_passwordInputType"
+                          Adornment="Adornment.End"
+                          AdornmentIcon="@_passwordIcon"
+                          OnAdornmentClick="TogglePasswordVisibility"
+                          Required="true"
+                          RequiredError="Password is required"
+                          Class="mb-3" />
+
+            <MudTextField @bind-Value="_registerModel.ConfirmPassword"
+                          Label="Confirm Password"
+                          Variant="Variant.Outlined"
+                          InputType="@_confirmPasswordInputType"
+                          Adornment="Adornment.End"
+                          AdornmentIcon="@_confirmPasswordIcon"
+                          OnAdornmentClick="ToggleConfirmPasswordVisibility"
+                          Required="true"
+                          RequiredError="Please confirm your password"
+                          Validation="@(new Func<string, string?>(ValidatePasswordMatch))"
+                          Class="mb-4" />
+
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Warning"
+                       FullWidth="true"
+                       Size="Size.Large"
+                       Disabled="@(!_formIsValid || _isLoading)"
+                       OnClick="HandleRegister">
+                @if (_isLoading)
+                {
+                    <MudProgressCircular Class="mr-2" Size="Size.Small" Indeterminate="true" />
+                    <span>Creating account...</span>
+                }
+                else
+                {
+                    <span>Register</span>
+                }
+            </MudButton>
+        </MudForm>
+
+        <MudDivider Class="my-4" />
+
+        <MudText Align="Align.Center" Style="color: #9a9ab0;">
+            Already have an account? <MudLink Href="/login" Color="Color.Warning">Login here</MudLink>
+        </MudText>
+    </MudPaper>
+</MudContainer>
+
+@using System.ComponentModel.DataAnnotations
+
+@code {
+    private MudForm _form = default!;
+    private RegisterModel _registerModel = new();
+    private bool _formIsValid;
+    private bool _isLoading;
+
+    private bool _showPassword;
+    private InputType _passwordInputType = InputType.Password;
+    private string _passwordIcon = Icons.Material.Filled.VisibilityOff;
+
+    private bool _showConfirmPassword;
+    private InputType _confirmPasswordInputType = InputType.Password;
+    private string _confirmPasswordIcon = Icons.Material.Filled.VisibilityOff;
+
+    private void TogglePasswordVisibility()
+    {
+        _showPassword = !_showPassword;
+        _passwordInputType = _showPassword ? InputType.Text : InputType.Password;
+        _passwordIcon = _showPassword ? Icons.Material.Filled.Visibility : Icons.Material.Filled.VisibilityOff;
+    }
+
+    private void ToggleConfirmPasswordVisibility()
+    {
+        _showConfirmPassword = !_showConfirmPassword;
+        _confirmPasswordInputType = _showConfirmPassword ? InputType.Text : InputType.Password;
+        _confirmPasswordIcon = _showConfirmPassword ? Icons.Material.Filled.Visibility : Icons.Material.Filled.VisibilityOff;
+    }
+
+    private string? ValidatePasswordMatch(string confirmPassword)
+    {
+        if (_registerModel.Password != confirmPassword)
+            return "Passwords do not match";
+        return null;
+    }
+
+    private async Task HandleRegister()
+    {
+        await _form.ValidateAsync();
+        if (!_formIsValid) return;
+
+        _isLoading = true;
+
+        try
+        {
+            var result = await AuthService.RegisterAsync(
+                _registerModel.Email,
+                _registerModel.Username,
+                _registerModel.Password);
+
+            if (result is not null)
+            {
+                Snackbar.Add("Account created successfully! Welcome!", Severity.Success);
+                Navigation.NavigateTo("/forces");
+            }
+            else
+            {
+                Snackbar.Add("Registration failed. Please check your information and try again.", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Registration failed: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private class RegisterModel
+    {
+        public string Email { get; set; } = string.Empty;
+        public string Username { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
+        public string ConfirmPassword { get; set; } = string.Empty;
+    }
+}

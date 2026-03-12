@@ -1,0 +1,170 @@
+@page "/battles/create"
+@attribute [Authorize]
+@inject BattleService BattleService
+@inject ForceService ForceService
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+
+@using CrusadeTracker.Application.Forces.DTOs
+
+<PageTitle>Record Battle - Crusade Tracker</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Small">
+    <MudPaper Class="pa-6 mt-4" Elevation="3" Style="background: #252540;">
+        <MudText Typo="Typo.h4" Class="mb-4" Style="color: #d4af37;">Record New Battle</MudText>
+
+        @if (_isLoadingForces)
+        {
+            <MudProgressCircular Color="Color.Warning" Indeterminate="true" />
+        }
+        else if (_forces is null || _forces.Count == 0)
+        {
+            <MudAlert Severity="Severity.Warning" Class="mb-4">
+                You need to create a force before recording battles. <MudLink Href="/forces/create" Color="Color.Warning">Create a force</MudLink> first.
+            </MudAlert>
+        }
+        else
+        {
+            <MudForm @ref="_form" @bind-IsValid="@_formIsValid">
+                <MudDatePicker @bind-Date="_battleDate"
+                               Label="Battle Date"
+                               Variant="Variant.Outlined"
+                               Required="true"
+                               RequiredError="Date is required"
+                               Class="mb-3" />
+
+                <MudTextField @bind-Value="_mission"
+                              Label="Mission"
+                              Placeholder="e.g., Supply Drop, Take and Hold"
+                              Variant="Variant.Outlined"
+                              Required="true"
+                              RequiredError="Mission is required"
+                              Class="mb-3" />
+
+                <MudSelect @bind-Value="_selectedForceId"
+                           Label="Your Force"
+                           Variant="Variant.Outlined"
+                           Required="true"
+                           RequiredError="Select a force"
+                           Class="mb-4">
+                    @foreach (var force in _forces)
+                    {
+                        <MudSelectItem Value="@force.Id">@force.Name (@force.Faction)</MudSelectItem>
+                    }
+                </MudSelect>
+
+                <MudStack Row="true" Spacing="2">
+                    <MudButton Variant="Variant.Filled"
+                               Color="Color.Warning"
+                               Size="Size.Large"
+                               Disabled="@(!_formIsValid || _isCreating)"
+                               OnClick="HandleCreate">
+                        @if (_isCreating)
+                        {
+                            <MudProgressCircular Class="mr-2" Size="Size.Small" Indeterminate="true" />
+                            <span>Creating...</span>
+                        }
+                        else
+                        {
+                            <span>Record Battle</span>
+                        }
+                    </MudButton>
+                    <MudButton Variant="Variant.Outlined"
+                               Color="Color.Default"
+                               Size="Size.Large"
+                               Href="/battles">
+                        Cancel
+                    </MudButton>
+                </MudStack>
+            </MudForm>
+        }
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private MudForm _form = default!;
+    private List<ForceResponse>? _forces;
+    private bool _isLoadingForces = true;
+    private bool _formIsValid;
+    private bool _isCreating;
+
+    private DateTime? _battleDate = DateTime.Today;
+    private string _mission = string.Empty;
+    private Guid _selectedForceId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadForces();
+    }
+
+    private async Task LoadForces()
+    {
+        _isLoadingForces = true;
+        try
+        {
+            _forces = await ForceService.GetForcesAsync();
+            if (_forces?.Count > 0)
+            {
+                _selectedForceId = _forces[0].Id;
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading forces: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _isLoadingForces = false;
+        }
+    }
+
+    private async Task HandleCreate()
+    {
+        await _form.ValidateAsync();
+        if (!_formIsValid || _battleDate is null) return;
+
+        _isCreating = true;
+
+        try
+        {
+            var selectedForce = _forces?.FirstOrDefault(f => f.Id == _selectedForceId);
+            var utcDate = DateTime.SpecifyKind(_battleDate.Value.Date, DateTimeKind.Utc);
+            var battleDate = new DateTimeOffset(utcDate, TimeSpan.Zero);
+
+            // Create the battle
+            var battle = await BattleService.CreateBattleAsync(battleDate, _mission);
+
+            if (battle is not null)
+            {
+                // Add the user's force as a participant
+                var updatedBattle = await BattleService.AddParticipantAsync(
+                    battle.Id,
+                    _selectedForceId,
+                    selectedForce?.Name);
+
+                if (updatedBattle is not null)
+                {
+                    Snackbar.Add("Battle recorded successfully!", Severity.Success);
+                    Navigation.NavigateTo($"/battles/{battle.Id}");
+                }
+                else
+                {
+                    Snackbar.Add("Battle created but failed to add your force.", Severity.Warning);
+                    Navigation.NavigateTo($"/battles/{battle.Id}");
+                }
+            }
+            else
+            {
+                Snackbar.Add("Failed to create battle. Please try again.", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _isCreating = false;
+        }
+    }
+}

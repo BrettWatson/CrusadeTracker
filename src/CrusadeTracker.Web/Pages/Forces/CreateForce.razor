@@ -1,0 +1,130 @@
+@page "/forces/create"
+@attribute [Authorize]
+@inject ForceService ForceService
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+
+<PageTitle>Create Force - Crusade Tracker</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Small">
+    <MudPaper Class="pa-6 mt-4" Elevation="3" Style="background: #252540;">
+        <MudText Typo="Typo.h4" Class="mb-4" Style="color: #d4af37;">Create New Crusade Force</MudText>
+
+        <MudForm @ref="_form" @bind-IsValid="@_formIsValid">
+            <MudTextField @bind-Value="_model.Name"
+                          Label="Force Name"
+                          Placeholder="e.g., The Emperor's Finest"
+                          Variant="Variant.Outlined"
+                          Required="true"
+                          RequiredError="Force name is required"
+                          Class="mb-3" />
+
+            <MudSelect @bind-Value="_model.Faction"
+                       Label="Faction"
+                       Variant="Variant.Outlined"
+                       Required="true"
+                       RequiredError="Please select a faction"
+                       Class="mb-3">
+                <MudSelectItem Value="@("Adeptus Astartes")">Adeptus Astartes</MudSelectItem>
+                <MudSelectItem Value="@("Adeptus Custodes")">Adeptus Custodes</MudSelectItem>
+                <MudSelectItem Value="@("Adeptus Mechanicus")">Adeptus Mechanicus</MudSelectItem>
+                <MudSelectItem Value="@("Aeldari")">Aeldari</MudSelectItem>
+                <MudSelectItem Value="@("Astra Militarum")">Astra Militarum</MudSelectItem>
+                <MudSelectItem Value="@("Chaos Daemons")">Chaos Daemons</MudSelectItem>
+                <MudSelectItem Value="@("Chaos Knights")">Chaos Knights</MudSelectItem>
+                <MudSelectItem Value="@("Chaos Space Marines")">Chaos Space Marines</MudSelectItem>
+                <MudSelectItem Value="@("Death Guard")">Death Guard</MudSelectItem>
+                <MudSelectItem Value="@("Drukhari")">Drukhari</MudSelectItem>
+                <MudSelectItem Value="@("Genestealer Cults")">Genestealer Cults</MudSelectItem>
+                <MudSelectItem Value="@("Grey Knights")">Grey Knights</MudSelectItem>
+                <MudSelectItem Value="@("Imperial Knights")">Imperial Knights</MudSelectItem>
+                <MudSelectItem Value="@("Leagues of Votann")">Leagues of Votann</MudSelectItem>
+                <MudSelectItem Value="@("Necrons")">Necrons</MudSelectItem>
+                <MudSelectItem Value="@("Orks")">Orks</MudSelectItem>
+                <MudSelectItem Value="@("Sisters of Battle")">Sisters of Battle</MudSelectItem>
+                <MudSelectItem Value="@("T'au Empire")">T'au Empire</MudSelectItem>
+                <MudSelectItem Value="@("Thousand Sons")">Thousand Sons</MudSelectItem>
+                <MudSelectItem Value="@("Tyranids")">Tyranids</MudSelectItem>
+                <MudSelectItem Value="@("World Eaters")">World Eaters</MudSelectItem>
+            </MudSelect>
+
+            <MudNumericField @bind-Value="_model.SupplyLimit"
+                             Label="Points Limit"
+                             Variant="Variant.Outlined"
+                             Min="500"
+                             Max="10000"
+                             Step="100"
+                             HelperText="Total points available for your Crusade force (typically 1000-2000)"
+                             Class="mb-4" />
+
+            <MudStack Row="true" Spacing="2">
+                <MudButton Variant="Variant.Filled"
+                           Color="Color.Warning"
+                           Size="Size.Large"
+                           Disabled="@(!_formIsValid || _isLoading)"
+                           OnClick="HandleCreate">
+                    @if (_isLoading)
+                    {
+                        <MudProgressCircular Class="mr-2" Size="Size.Small" Indeterminate="true" />
+                        <span>Creating...</span>
+                    }
+                    else
+                    {
+                        <span>Create Force</span>
+                    }
+                </MudButton>
+                <MudButton Variant="Variant.Outlined"
+                           Color="Color.Default"
+                           Size="Size.Large"
+                           Href="/forces">
+                    Cancel
+                </MudButton>
+            </MudStack>
+        </MudForm>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private MudForm _form = default!;
+    private CreateForceModel _model = new() { SupplyLimit = 1000 };
+    private bool _formIsValid;
+    private bool _isLoading;
+
+    private async Task HandleCreate()
+    {
+        await _form.ValidateAsync();
+        if (!_formIsValid) return;
+
+        _isLoading = true;
+
+        try
+        {
+            var result = await ForceService.CreateForceAsync(_model.Name, _model.Faction, _model.SupplyLimit);
+
+            if (result is not null)
+            {
+                Snackbar.Add($"{result.Name} has been created!", Severity.Success);
+                Navigation.NavigateTo($"/forces/{result.Id}");
+            }
+            else
+            {
+                Snackbar.Add("Failed to create force. Please try again.", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private class CreateForceModel
+    {
+        public string Name { get; set; } = string.Empty;
+        public string Faction { get; set; } = string.Empty;
+        public int SupplyLimit { get; set; }
+    }
+}

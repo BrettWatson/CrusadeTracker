@@ -1,0 +1,90 @@
+@using MudBlazor
+@inject ForceService ForceService
+
+<MudDialog>
+    <DialogContent>
+        <MudForm @ref="_form" @bind-IsValid="@_formIsValid">
+            <MudTextField @bind-Value="_model.Name"
+                          Label="Unit Name"
+                          Placeholder="e.g., Squad Cassius"
+                          Variant="Variant.Outlined"
+                          Required="true"
+                          RequiredError="Unit name is required"
+                          Class="mb-3" />
+
+            <MudTextField @bind-Value="_model.DataSheet"
+                          Label="Datasheet"
+                          Placeholder="e.g., Intercessor Squad"
+                          Variant="Variant.Outlined"
+                          Required="true"
+                          RequiredError="Datasheet is required"
+                          Class="mb-3" />
+
+            <MudNumericField @bind-Value="_model.Points"
+                             Label="Points"
+                             Variant="Variant.Outlined"
+                             Min="0"
+                             Max="2000"
+                             Step="5"
+                             Class="mb-3" />
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Warning" Variant="Variant.Filled" OnClick="Submit" Disabled="@(!_formIsValid || _isSubmitting)">
+            @if (_isSubmitting)
+            {
+                <MudProgressCircular Class="mr-2" Size="Size.Small" Indeterminate="true" />
+                <span>Adding...</span>
+            }
+            else
+            {
+                <span>Add Unit</span>
+            }
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; } = default!;
+
+    [Parameter]
+    public Guid ForceId { get; set; }
+
+    private MudForm _form = default!;
+    private NewUnitModel _model = new();
+    private bool _formIsValid;
+    private bool _isSubmitting;
+
+    private async Task Submit()
+    {
+        await _form.ValidateAsync();
+        if (!_formIsValid) return;
+
+        _isSubmitting = true;
+
+        try
+        {
+            var result = await ForceService.AddUnitAsync(ForceId, _model.Name, _model.DataSheet, _model.Points);
+
+            if (result is not null)
+            {
+                MudDialog.Close(DialogResult.Ok(true));
+            }
+        }
+        finally
+        {
+            _isSubmitting = false;
+        }
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private class NewUnitModel
+    {
+        public string Name { get; set; } = string.Empty;
+        public string DataSheet { get; set; } = string.Empty;
+        public int Points { get; set; } = 100;
+    }
+}

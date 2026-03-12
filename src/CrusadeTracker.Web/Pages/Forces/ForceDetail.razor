@@ -1,0 +1,223 @@
+@page "/forces/{ForceId:guid}"
+@attribute [Authorize]
+@inject ForceService ForceService
+@inject NavigationManager Navigation
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+
+@using CrusadeTracker.Application.Forces.DTOs
+@using CrusadeTracker.Application.Units.DTOs
+
+<PageTitle>@(_force?.Name ?? "Force Details") - Crusade Tracker</PageTitle>
+
+@if (_isLoading)
+{
+    <MudProgressCircular Color="Color.Warning" Indeterminate="true" />
+}
+else if (_force is null)
+{
+    <MudAlert Severity="Severity.Error">Force not found.</MudAlert>
+}
+else
+{
+    <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Start" Class="mb-4">
+        <MudStack Spacing="0">
+            <MudText Typo="Typo.h4" Style="color: #d4af37;">@_force.Name</MudText>
+            <MudChip T="string" Size="Size.Small" Style="background: linear-gradient(135deg, #3a3a5c 0%, #252540 100%); color: #d4af37;">@_force.Faction</MudChip>
+        </MudStack>
+        <MudStack Row="true" Spacing="2">
+            <MudButton Variant="Variant.Outlined" Color="Color.Default" Href="/forces">Back to Forces</MudButton>
+            <MudButton Variant="Variant.Outlined" Color="Color.Error" OnClick="HandleDelete">Delete Force</MudButton>
+        </MudStack>
+    </MudStack>
+
+    <MudGrid Class="mb-4">
+        <MudItem xs="12" md="6">
+            <MudCard Elevation="3" Style="background: #252540; border-top: 3px solid #d4af37;">
+                <MudCardContent>
+                    <MudText Typo="Typo.h6" Style="color: #9a9ab0;">Points</MudText>
+                    <MudText Typo="Typo.h3" Style="color: #d4af37; font-weight: 700;">@_force.TotalPoints / @_force.PointsLimit</MudText>
+                    <MudProgressLinear Color="Color.Warning" Value="@((_force.TotalPoints * 100.0 / _force.PointsLimit))" Class="mt-3" />
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+        <MudItem xs="12" md="6">
+            <MudCard Elevation="3" Style="background: #252540; border-top: 3px solid #d4af37;">
+                <MudCardContent>
+                    <MudText Typo="Typo.h6" Style="color: #9a9ab0;">Units</MudText>
+                    <MudText Typo="Typo.h3" Style="color: #d4af37; font-weight: 700;">@(_force.Units?.Count ?? 0)</MudText>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+    </MudGrid>
+
+    <MudCard Elevation="3" Style="background: #252540;">
+        <MudCardHeader>
+            <CardHeaderContent>
+                <MudText Typo="Typo.h5" Style="color: #e8e8e8;">Units</MudText>
+            </CardHeaderContent>
+            <CardHeaderActions>
+                <MudButton Variant="Variant.Filled" Color="Color.Warning" Size="Size.Small" StartIcon="@Icons.Material.Filled.Add" OnClick="ShowAddUnitDialog">Add Unit</MudButton>
+            </CardHeaderActions>
+        </MudCardHeader>
+        <MudCardContent>
+            @if (_force.Units is null || _force.Units.Count == 0)
+            {
+                <MudAlert Severity="Severity.Info">No units in this force yet. Add your first unit to get started!</MudAlert>
+            }
+            else
+            {
+                <MudTable Items="@_force.Units" Hover="true" Dense="true" Style="background: transparent;">
+                    <HeaderContent>
+                        <MudTh>Name</MudTh>
+                        <MudTh>Datasheet</MudTh>
+                        <MudTh>Points</MudTh>
+                        <MudTh>XP</MudTh>
+                        <MudTh>Honours</MudTh>
+                        <MudTh>Scars</MudTh>
+                        <MudTh>Actions</MudTh>
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd DataLabel="Name">@context.Name</MudTd>
+                        <MudTd DataLabel="Datasheet">@context.DataSheet</MudTd>
+                        <MudTd DataLabel="Points">@context.Points</MudTd>
+                        <MudTd DataLabel="XP">@context.ExperiencePoints</MudTd>
+                        <MudTd DataLabel="Honours">
+                            @if (context.BattleHonours.Any())
+                            {
+                                @foreach (var honour in context.BattleHonours)
+                                {
+                                    <MudChip T="string" Size="Size.Small" Color="Color.Success" Class="mr-1">@honour</MudChip>
+                                }
+                            }
+                            else
+                            {
+                                <MudText Typo="Typo.body2" Style="color: #9a9ab0;">None</MudText>
+                            }
+                        </MudTd>
+                        <MudTd DataLabel="Scars">
+                            @if (context.BattleScars.Any())
+                            {
+                                @foreach (var scar in context.BattleScars)
+                                {
+                                    <MudChip T="string" Size="Size.Small" Color="Color.Error" Class="mr-1">@scar</MudChip>
+                                }
+                            }
+                            else
+                            {
+                                <MudText Typo="Typo.body2" Style="color: #9a9ab0;">None</MudText>
+                            }
+                        </MudTd>
+                        <MudTd DataLabel="Actions">
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="@(() => HandleRemoveUnit(context.Id))" />
+                        </MudTd>
+                    </RowTemplate>
+                </MudTable>
+            }
+        </MudCardContent>
+    </MudCard>
+}
+
+@code {
+    [Parameter]
+    public Guid ForceId { get; set; }
+
+    private ForceDetailResponse? _force;
+    private bool _isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadForce();
+    }
+
+    private async Task LoadForce()
+    {
+        _isLoading = true;
+        try
+        {
+            _force = await ForceService.GetForceAsync(ForceId);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading force: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private async Task ShowAddUnitDialog()
+    {
+        var parameters = new DialogParameters<AddUnitDialog>
+        {
+            { x => x.ForceId, ForceId }
+        };
+
+        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<AddUnitDialog>("Add Unit", parameters, options);
+        var result = await dialog.Result;
+
+        if (result is not null && !result.Canceled)
+        {
+            await LoadForce();
+            Snackbar.Add("Unit added successfully!", Severity.Success);
+        }
+    }
+
+    private async Task HandleRemoveUnit(Guid unitId)
+    {
+        var parameters = new DialogParameters<ConfirmDialog>
+        {
+            { x => x.ContentText, "Are you sure you want to remove this unit from the force?" },
+            { x => x.ButtonText, "Remove" },
+            { x => x.Color, Color.Error }
+        };
+
+        var options = new DialogOptions { CloseOnEscapeKey = true };
+        var dialog = await DialogService.ShowAsync<ConfirmDialog>("Remove Unit", parameters, options);
+        var result = await dialog.Result;
+
+        if (result is not null && !result.Canceled)
+        {
+            var success = await ForceService.RemoveUnitAsync(ForceId, unitId);
+            if (success)
+            {
+                Snackbar.Add("Unit removed from force.", Severity.Success);
+                await LoadForce();
+            }
+            else
+            {
+                Snackbar.Add("Failed to remove unit.", Severity.Error);
+            }
+        }
+    }
+
+    private async Task HandleDelete()
+    {
+        var parameters = new DialogParameters<ConfirmDialog>
+        {
+            { x => x.ContentText, $"Are you sure you want to delete {_force?.Name}? This action cannot be undone. All units in this force will also be deleted." },
+            { x => x.ButtonText, "Delete" },
+            { x => x.Color, Color.Error }
+        };
+
+        var options = new DialogOptions { CloseOnEscapeKey = true };
+        var dialog = await DialogService.ShowAsync<ConfirmDialog>("Delete Force", parameters, options);
+        var result = await dialog.Result;
+
+        if (result is not null && !result.Canceled)
+        {
+            var success = await ForceService.DeleteForceAsync(ForceId);
+            if (success)
+            {
+                Snackbar.Add($"{_force?.Name} has been deleted.", Severity.Success);
+                Navigation.NavigateTo("/forces");
+            }
+            else
+            {
+                Snackbar.Add("Failed to delete force.", Severity.Error);
+            }
+        }
+    }
+}

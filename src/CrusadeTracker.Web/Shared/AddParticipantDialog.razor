@@ -1,0 +1,84 @@
+@using MudBlazor
+@using CrusadeTracker.Application.Forces.DTOs
+@inject BattleService BattleService
+
+<MudDialog>
+    <DialogContent>
+        <MudForm @ref="_form" @bind-IsValid="@_formIsValid">
+            <MudSelect @bind-Value="_selectedForceId"
+                       Label="Select Force"
+                       Variant="Variant.Outlined"
+                       Required="true"
+                       RequiredError="Please select a force"
+                       Class="mb-3">
+                @foreach (var force in AvailableForces)
+                {
+                    <MudSelectItem Value="@force.Id">@force.Name (@force.Faction)</MudSelectItem>
+                }
+            </MudSelect>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Warning" Variant="Variant.Filled" OnClick="Submit" Disabled="@(!_formIsValid || _isSubmitting)">
+            @if (_isSubmitting)
+            {
+                <MudProgressCircular Class="mr-2" Size="Size.Small" Indeterminate="true" />
+                <span>Adding...</span>
+            }
+            else
+            {
+                <span>Add to Battle</span>
+            }
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; } = default!;
+
+    [Parameter]
+    public Guid BattleId { get; set; }
+
+    [Parameter]
+    public List<ForceResponse> AvailableForces { get; set; } = new();
+
+    private MudForm _form = default!;
+    private Guid _selectedForceId;
+    private bool _formIsValid;
+    private bool _isSubmitting;
+
+    protected override void OnInitialized()
+    {
+        if (AvailableForces.Count > 0)
+        {
+            _selectedForceId = AvailableForces[0].Id;
+        }
+    }
+
+    private async Task Submit()
+    {
+        await _form.ValidateAsync();
+        if (!_formIsValid) return;
+
+        _isSubmitting = true;
+
+        try
+        {
+            var selectedForce = AvailableForces.FirstOrDefault(f => f.Id == _selectedForceId);
+            var result = await BattleService.AddParticipantAsync(BattleId, _selectedForceId, selectedForce?.Name);
+
+            if (result is not null)
+            {
+                MudDialog.Close(DialogResult.Ok(true));
+            }
+        }
+        finally
+        {
+            _isSubmitting = false;
+        }
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+}

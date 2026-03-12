@@ -1,0 +1,143 @@
+@page "/forces"
+@attribute [Authorize]
+@inject ForceService ForceService
+@inject NavigationManager Navigation
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+
+@using CrusadeTracker.Application.Forces.DTOs
+
+<PageTitle>My Forces - Crusade Tracker</PageTitle>
+
+<MudText Typo="Typo.h4" Class="mb-4" Style="color: #d4af37;">My Crusade Forces</MudText>
+
+@if (_isLoading)
+{
+    <MudProgressCircular Color="Color.Warning" Indeterminate="true" />
+}
+else if (_forces is null || _forces.Count == 0)
+{
+    <MudAlert Severity="Severity.Info" Class="mb-4">
+        You don't have any Crusade forces yet. <MudLink Href="/forces/create" Color="Color.Warning">Create your first force</MudLink> to get started!
+    </MudAlert>
+}
+else
+{
+    <MudGrid>
+        @foreach (var force in _forces)
+        {
+            <MudItem xs="12" sm="6" md="4">
+                <MudCard Elevation="3" Style="background: #252540; border-top: 3px solid #d4af37;">
+                    <MudCardHeader>
+                        <CardHeaderContent>
+                            <MudText Typo="Typo.h6" Style="color: #e8e8e8;">@force.Name</MudText>
+                            <MudChip T="string" Size="Size.Small" Style="background: linear-gradient(135deg, #3a3a5c 0%, #252540 100%); color: #d4af37;">@force.Faction</MudChip>
+                        </CardHeaderContent>
+                        <CardHeaderActions>
+                            <MudMenu Icon="@Icons.Material.Filled.MoreVert" Color="Color.Default">
+                                <MudMenuItem Href="@($"/forces/{force.Id}")">View Details</MudMenuItem>
+                                <MudMenuItem Href="@($"/forces/{force.Id}/edit")">Edit</MudMenuItem>
+                                <MudDivider />
+                                <MudMenuItem OnClick="@(() => HandleDuplicate(force))">Duplicate</MudMenuItem>
+                                <MudDivider />
+                                <MudMenuItem OnClick="@(() => HandleDelete(force))" Style="color: #c41e3a;">Delete</MudMenuItem>
+                            </MudMenu>
+                        </CardHeaderActions>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        <MudGrid Spacing="2">
+                            <MudItem xs="6" Class="text-center">
+                                <MudText Typo="Typo.h4" Style="color: #d4af37; font-weight: 700;">@force.TotalPoints</MudText>
+                                <MudText Typo="Typo.caption" Style="color: #9a9ab0;">/ @force.PointsLimit pts</MudText>
+                            </MudItem>
+                            <MudItem xs="6" Class="text-center">
+                                <MudText Typo="Typo.h4" Style="color: #d4af37; font-weight: 700;">@force.UnitCount</MudText>
+                                <MudText Typo="Typo.caption" Style="color: #9a9ab0;">Units</MudText>
+                            </MudItem>
+                        </MudGrid>
+                        <MudProgressLinear Color="Color.Warning" Value="@(force.PointsLimit > 0 ? (int)(force.TotalPoints * 100 / force.PointsLimit) : 0)" Class="mt-3" />
+                    </MudCardContent>
+                    <MudCardActions Class="d-flex justify-space-between">
+                        <MudButton Variant="Variant.Outlined" Color="Color.Warning" Size="Size.Small" Href="@($"/forces/{force.Id}")">View Details</MudButton>
+                        <MudText Typo="Typo.caption" Style="color: #9a9ab0;">@force.CreatedAt.ToString("MMM d, yyyy")</MudText>
+                    </MudCardActions>
+                </MudCard>
+            </MudItem>
+        }
+    </MudGrid>
+}
+
+<MudFab Color="Color.Warning" StartIcon="@Icons.Material.Filled.Add" Style="position: fixed; bottom: 30px; right: 30px;" Href="/forces/create" />
+
+@code {
+    private List<ForceResponse>? _forces;
+    private bool _isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadForces();
+    }
+
+    private async Task LoadForces()
+    {
+        _isLoading = true;
+        try
+        {
+            _forces = await ForceService.GetForcesAsync();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading forces: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private async Task HandleDelete(ForceResponse force)
+    {
+        var parameters = new DialogParameters<ConfirmDialog>
+        {
+            { x => x.ContentText, $"Are you sure you want to delete {force.Name}? This action cannot be undone. All units in this force will also be deleted." },
+            { x => x.ButtonText, "Delete" },
+            { x => x.Color, Color.Error }
+        };
+
+        var options = new DialogOptions { CloseOnEscapeKey = true };
+        var dialog = await DialogService.ShowAsync<ConfirmDialog>("Delete Force", parameters, options);
+        var result = await dialog.Result;
+
+        if (result is not null && !result.Canceled)
+        {
+            var success = await ForceService.DeleteForceAsync(force.Id);
+            if (success)
+            {
+                Snackbar.Add($"{force.Name} has been deleted.", Severity.Success);
+                await LoadForces();
+            }
+            else
+            {
+                Snackbar.Add("Failed to delete force.", Severity.Error);
+            }
+        }
+    }
+
+    private async Task HandleDuplicate(ForceResponse force)
+    {
+        var newForce = await ForceService.CreateForceAsync(
+            $"{force.Name} (Copy)",
+            force.Faction,
+            force.PointsLimit);
+
+        if (newForce is not null)
+        {
+            Snackbar.Add($"Force duplicated as {newForce.Name}.", Severity.Success);
+            await LoadForces();
+        }
+        else
+        {
+            Snackbar.Add("Failed to duplicate force.", Severity.Error);
+        }
+    }
+}

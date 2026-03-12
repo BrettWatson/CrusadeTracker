@@ -1,0 +1,268 @@
+@page "/battles/{BattleId:guid}"
+@attribute [Authorize]
+@inject BattleService BattleService
+@inject ForceService ForceService
+@inject NavigationManager Navigation
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+
+@using CrusadeTracker.Application.Battles.DTOs
+@using CrusadeTracker.Application.Forces.DTOs
+
+<PageTitle>@(_battle?.Mission ?? "Battle Details") - Crusade Tracker</PageTitle>
+
+@if (_isLoading)
+{
+    <MudProgressCircular Color="Color.Warning" Indeterminate="true" />
+}
+else if (_battle is null)
+{
+    <MudAlert Severity="Severity.Error">Battle not found or you don't have access to it.</MudAlert>
+}
+else
+{
+    <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Start" Class="mb-4">
+        <MudStack Spacing="1">
+            <MudText Typo="Typo.h4" Style="color: #d4af37;">@_battle.Mission</MudText>
+            <MudText Typo="Typo.subtitle1" Style="color: #9a9ab0;">@_battle.Date.ToString("MMMM d, yyyy")</MudText>
+        </MudStack>
+        <MudStack Row="true" Spacing="2">
+            <MudButton Variant="Variant.Outlined" Color="Color.Default" Href="/battles">Back to Battles</MudButton>
+            @if (!_battle.IsFinalized)
+            {
+                <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="HandleFinalize">Finalize Battle</MudButton>
+            }
+        </MudStack>
+    </MudStack>
+
+    <MudGrid>
+        <MudItem xs="12" md="8">
+            <MudCard Elevation="3" Style="background: #252540;">
+                <MudCardHeader>
+                    <CardHeaderContent>
+                        <MudText Typo="Typo.h5" Style="color: #e8e8e8;">Participants</MudText>
+                    </CardHeaderContent>
+                    <CardHeaderActions>
+                        @if (!_battle.IsFinalized)
+                        {
+                            <MudButton Variant="Variant.Outlined" Color="Color.Warning" Size="Size.Small"
+                                       StartIcon="@Icons.Material.Filled.Add" OnClick="ShowAddParticipantDialog">
+                                Add Force
+                            </MudButton>
+                        }
+                    </CardHeaderActions>
+                </MudCardHeader>
+                <MudCardContent>
+                    @if (_battle.Participants.Count == 0)
+                    {
+                        <MudAlert Severity="Severity.Info">No participants yet. Add forces to this battle.</MudAlert>
+                    }
+                    else
+                    {
+                        <MudTable Items="@_battle.Participants" Dense="true" Style="background: transparent;">
+                            <HeaderContent>
+                                <MudTh>Force</MudTh>
+                                <MudTh>Result</MudTh>
+                                <MudTh>Actions</MudTh>
+                            </HeaderContent>
+                            <RowTemplate>
+                                <MudTd DataLabel="Force">
+                                    <MudText>@(context.ForceNameSnapshot ?? "Unknown Force")</MudText>
+                                </MudTd>
+                                <MudTd DataLabel="Result">
+                                    <MudChip T="string" Size="Size.Small" Color="@GetResultColor(context.Result)">
+                                        @context.Result
+                                    </MudChip>
+                                </MudTd>
+                                <MudTd DataLabel="Actions">
+                                    @if (!_battle.IsFinalized)
+                                    {
+                                        <MudButtonGroup Variant="Variant.Outlined" Size="Size.Small">
+                                            <MudButton Color="Color.Success" OnClick="@(() => SetResult(context.ForceId, "Victory"))">
+                                                Victory
+                                            </MudButton>
+                                            <MudButton Color="Color.Error" OnClick="@(() => SetResult(context.ForceId, "Defeat"))">
+                                                Defeat
+                                            </MudButton>
+                                            <MudButton Color="Color.Default" OnClick="@(() => SetResult(context.ForceId, "Draw"))">
+                                                Draw
+                                            </MudButton>
+                                        </MudButtonGroup>
+                                    }
+                                </MudTd>
+                            </RowTemplate>
+                        </MudTable>
+                    }
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+
+        <MudItem xs="12" md="4">
+            <MudCard Elevation="3" Style="background: #252540; border-top: 3px solid #d4af37;">
+                <MudCardContent>
+                    <MudText Typo="Typo.h6" Style="color: #9a9ab0;">Battle Status</MudText>
+                    <MudStack Class="mt-3" Spacing="2">
+                        <MudStack Row="true" Justify="Justify.SpaceBetween">
+                            <MudText Style="color: #9a9ab0;">Status</MudText>
+                            @if (_battle.IsFinalized)
+                            {
+                                <MudChip T="string" Size="Size.Small" Color="Color.Success">Finalized</MudChip>
+                            }
+                            else
+                            {
+                                <MudChip T="string" Size="Size.Small" Color="Color.Warning">In Progress</MudChip>
+                            }
+                        </MudStack>
+                        <MudStack Row="true" Justify="Justify.SpaceBetween">
+                            <MudText Style="color: #9a9ab0;">Participants</MudText>
+                            <MudText Style="color: #d4af37; font-weight: 600;">@_battle.Participants.Count</MudText>
+                        </MudStack>
+                        <MudStack Row="true" Justify="Justify.SpaceBetween">
+                            <MudText Style="color: #9a9ab0;">Created</MudText>
+                            <MudText Style="color: #e8e8e8;">@_battle.CreatedAt.ToString("MMM d, yyyy")</MudText>
+                        </MudStack>
+                    </MudStack>
+                </MudCardContent>
+            </MudCard>
+
+            @if (!_battle.IsFinalized)
+            {
+                <MudCard Elevation="3" Style="background: #252540; margin-top: 16px;">
+                    <MudCardContent>
+                        <MudText Typo="Typo.h6" Style="color: #9a9ab0;">Quick Actions</MudText>
+                        <MudStack Class="mt-3" Spacing="2">
+                            <MudButton Variant="Variant.Outlined" Color="Color.Warning" FullWidth="true"
+                                       StartIcon="@Icons.Material.Filled.Add" OnClick="ShowAddParticipantDialog">
+                                Add Participant
+                            </MudButton>
+                            <MudButton Variant="Variant.Filled" Color="Color.Success" FullWidth="true"
+                                       StartIcon="@Icons.Material.Filled.Check" OnClick="HandleFinalize">
+                                Finalize Battle
+                            </MudButton>
+                        </MudStack>
+                    </MudCardContent>
+                </MudCard>
+            }
+        </MudItem>
+    </MudGrid>
+}
+
+@code {
+    [Parameter]
+    public Guid BattleId { get; set; }
+
+    private BattleResponse? _battle;
+    private List<ForceResponse>? _userForces;
+    private bool _isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        _isLoading = true;
+        try
+        {
+            _battle = await BattleService.GetBattleAsync(BattleId);
+            _userForces = await ForceService.GetForcesAsync();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading battle: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private async Task ShowAddParticipantDialog()
+    {
+        if (_userForces is null || _userForces.Count == 0)
+        {
+            Snackbar.Add("You don't have any forces to add.", Severity.Warning);
+            return;
+        }
+
+        // Filter out forces already participating
+        var participatingForceIds = _battle?.Participants.Select(p => p.ForceId).ToHashSet() ?? new HashSet<Guid>();
+        var availableForces = _userForces.Where(f => !participatingForceIds.Contains(f.Id)).ToList();
+
+        if (availableForces.Count == 0)
+        {
+            Snackbar.Add("All your forces are already in this battle.", Severity.Info);
+            return;
+        }
+
+        var parameters = new DialogParameters<AddParticipantDialog>
+        {
+            { x => x.BattleId, BattleId },
+            { x => x.AvailableForces, availableForces }
+        };
+
+        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<AddParticipantDialog>("Add Participant", parameters, options);
+        var result = await dialog.Result;
+
+        if (result is not null && !result.Canceled)
+        {
+            await LoadData();
+            Snackbar.Add("Force added to battle!", Severity.Success);
+        }
+    }
+
+    private async Task SetResult(Guid forceId, string result)
+    {
+        var updatedBattle = await BattleService.SetResultAsync(BattleId, forceId, result);
+        if (updatedBattle is not null)
+        {
+            _battle = updatedBattle;
+            Snackbar.Add($"Result set to {result}.", Severity.Success);
+        }
+        else
+        {
+            Snackbar.Add("Failed to set result.", Severity.Error);
+        }
+    }
+
+    private async Task HandleFinalize()
+    {
+        var parameters = new DialogParameters<ConfirmDialog>
+        {
+            { x => x.ContentText, "Are you sure you want to finalize this battle? Once finalized, no changes can be made." },
+            { x => x.ButtonText, "Finalize" },
+            { x => x.Color, Color.Success }
+        };
+
+        var options = new DialogOptions { CloseOnEscapeKey = true };
+        var dialog = await DialogService.ShowAsync<ConfirmDialog>("Finalize Battle", parameters, options);
+        var result = await dialog.Result;
+
+        if (result is not null && !result.Canceled)
+        {
+            var updatedBattle = await BattleService.FinalizeBattleAsync(BattleId);
+            if (updatedBattle is not null)
+            {
+                _battle = updatedBattle;
+                Snackbar.Add("Battle finalized!", Severity.Success);
+            }
+            else
+            {
+                Snackbar.Add("Failed to finalize battle.", Severity.Error);
+            }
+        }
+    }
+
+    private Color GetResultColor(string result)
+    {
+        return result.ToLower() switch
+        {
+            "victory" => Color.Success,
+            "defeat" => Color.Error,
+            "draw" => Color.Default,
+            _ => Color.Default
+        };
+    }
+}

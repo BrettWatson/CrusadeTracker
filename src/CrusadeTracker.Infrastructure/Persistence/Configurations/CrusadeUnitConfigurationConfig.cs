@@ -2,11 +2,13 @@ using CrusadeTracker.Domain.Common;
 using CrusadeTracker.Domain.Forces;
 using CrusadeTracker.Domain.Forces.ValueObjects;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace CrusadeTracker.Infrastructure.Persistence.Configurations;
 
-public sealed class CrusadeUnitConfigurationConfig: IEntityTypeConfiguration<CrusadeUnit>
+public sealed class CrusadeUnitConfigurationConfig : IEntityTypeConfiguration<CrusadeUnit>
 {
     public void Configure(EntityTypeBuilder<CrusadeUnit> builder)
     {
@@ -25,6 +27,7 @@ public sealed class CrusadeUnitConfigurationConfig: IEntityTypeConfiguration<Cru
                 v => new Points(v))
             .HasColumnName("Points")
             .IsRequired();
+
         builder.Property(x => x.ExperiencePoints)
             .HasConversion(
                 xp => xp.Value,
@@ -32,31 +35,32 @@ public sealed class CrusadeUnitConfigurationConfig: IEntityTypeConfiguration<Cru
             .HasColumnName("ExperiencePoints")
             .IsRequired();
 
-        // Honours/scars string lists -> separate tables
-        builder.OwnsMany<string>("_battleHonours", bh =>
-        {
-            bh.ToTable("CrusadeUnitBattleHonours");
-            bh.WithOwner().HasForeignKey("UnitId");
-            bh.Property<Guid>("Id");
-            bh.HasKey("Id");
-            bh.Property(b => b)
-              .HasColumnName("BattleHonour")
-              .HasMaxLength(200)
-              .IsRequired();
-        });
-        
+        // Ignore public read-only collection properties
+        builder.Ignore(x => x.BattleHonours);
+        builder.Ignore(x => x.BattleScars);
 
-        builder.OwnsMany<string>("_scars", s =>
-        {
-            s.ToTable("CrusadeUnitScars");
-            s.WithOwner().HasForeignKey("UnitId");
-            s.Property<Guid>("Id");
-            s.HasKey("Id");
-            s.Property(sc => sc)
-              .HasColumnName("Scar")
-              .HasMaxLength(200)
-              .IsRequired();
-        });
+        // Battle honours - store as JSON array via primitive collection
+        var stringListConverter = new ValueConverter<List<string>, string>(
+            v => string.Join("|||", v),
+            v => string.IsNullOrEmpty(v) ? new List<string>() : v.Split("|||", StringSplitOptions.RemoveEmptyEntries).ToList());
 
+        var stringListComparer = new ValueComparer<List<string>>(
+            (c1, c2) => c1!.SequenceEqual(c2!),
+            c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
+            c => c.ToList());
+
+        builder.Property<List<string>>("_battleHonours")
+            .HasField("_battleHonours")
+            .UsePropertyAccessMode(PropertyAccessMode.Field)
+            .HasColumnName("BattleHonours")
+            .HasConversion(stringListConverter)
+            .Metadata.SetValueComparer(stringListComparer);
+
+        builder.Property<List<string>>("_battleScars")
+            .HasField("_battleScars")
+            .UsePropertyAccessMode(PropertyAccessMode.Field)
+            .HasColumnName("BattleScars")
+            .HasConversion(stringListConverter)
+            .Metadata.SetValueComparer(stringListComparer);
     }
 }
