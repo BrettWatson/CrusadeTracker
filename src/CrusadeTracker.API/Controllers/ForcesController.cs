@@ -1,4 +1,5 @@
 using CrusadeTracker.API.Extensions;
+using CrusadeTracker.Application.Forces;
 using CrusadeTracker.Application.Forces.DTOs;
 using CrusadeTracker.Application.Units.DTOs;
 using CrusadeTracker.Domain.Common;
@@ -64,8 +65,10 @@ public class ForcesController : ControllerBase
                 u.Id.Value,
                 u.Name,
                 u.DataSheet,
+                u.BattlefieldRole,
                 u.Points.Value,
                 u.ExperiencePoints.Value,
+                u.Equipment.ToList(),
                 u.BattleHonours.ToList(),
                 u.BattleScars.ToList(),
                 u.CreatedAt)).ToList(),
@@ -98,6 +101,94 @@ public class ForcesController : ControllerBase
             force.PointsLimit.Value,
             force.TotalPoints().Value,
             force.Units.Count,
+            force.CreatedAt);
+
+        return CreatedAtAction(nameof(GetForce), new { id = force.Id.Value }, response);
+    }
+
+    [HttpPost("import")]
+    public async Task<ActionResult<ForceDetailResponse>> ImportForce(
+        ImportForceRequest request,
+        CancellationToken ct)
+    {
+        var userId = User.GetUserId();
+
+        BattleForgeForce parsed;
+        try
+        {
+            parsed = BattleForgeParser.Parse(request.BattleForgeExport);
+        }
+        catch (FormatException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+
+        var force = CrusadeForce.Create(
+            userId,
+            parsed.Name,
+            parsed.Faction,
+            new SupplyLimit(parsed.PointsLimit));
+
+        // Track name occurrences to disambiguate duplicates
+        var nameCounts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        var unitNames = new List<(BattleForgeUnit Unit, string ResolvedName)>();
+
+        // First pass: count occurrences
+        foreach (var u in parsed.Units)
+        {
+            nameCounts.TryGetValue(u.Name, out int count);
+            nameCounts[u.Name] = count + 1;
+        }
+
+        // Second pass: assign numbered names for duplicates
+        var nameIndex = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        foreach (var u in parsed.Units)
+        {
+            string resolvedName;
+            if (nameCounts[u.Name] > 1)
+            {
+                nameIndex.TryGetValue(u.Name, out int idx);
+                idx++;
+                nameIndex[u.Name] = idx;
+                resolvedName = $"{u.Name} #{idx}";
+            }
+            else
+            {
+                resolvedName = u.Name;
+            }
+
+            var unit = new CrusadeUnit(
+                new UnitId(Guid.NewGuid()),
+                resolvedName,
+                u.Name,
+                new Points(u.Points),
+                u.BattlefieldRole,
+                u.Equipment);
+
+            force.AddUnit(unit);
+        }
+
+        await _forceRepository.AddAsync(force, ct);
+        await _forceRepository.SaveChangesAsync(ct);
+
+        var response = new ForceDetailResponse(
+            force.Id.Value,
+            force.OwnerId.Value,
+            force.Name,
+            force.Faction,
+            force.PointsLimit.Value,
+            force.TotalPoints().Value,
+            force.Units.Select(u => new UnitResponse(
+                u.Id.Value,
+                u.Name,
+                u.DataSheet,
+                u.BattlefieldRole,
+                u.Points.Value,
+                u.ExperiencePoints.Value,
+                u.Equipment.ToList(),
+                u.BattleHonours.ToList(),
+                u.BattleScars.ToList(),
+                u.CreatedAt)).ToList(),
             force.CreatedAt);
 
         return CreatedAtAction(nameof(GetForce), new { id = force.Id.Value }, response);

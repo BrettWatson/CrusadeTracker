@@ -10,85 +10,185 @@
     <MudPaper Class="pa-6 mt-4" Elevation="3" Style="background: #252540;">
         <MudText Typo="Typo.h4" Class="mb-4" Style="color: #d4af37;">Create New Crusade Force</MudText>
 
-        <MudForm @ref="_form" @bind-IsValid="@_formIsValid">
-            <MudTextField @bind-Value="_model.Name"
-                          Label="Force Name"
-                          Placeholder="e.g., The Emperor's Finest"
-                          Variant="Variant.Outlined"
-                          Required="true"
-                          RequiredError="Force name is required"
-                          Class="mb-3" />
+        <MudTabs @bind-ActivePanelIndex="_activeTab" Elevation="0" Rounded="true" ApplyEffectsToContainer="true" Class="mb-4">
+            <MudTabPanel Text="Manual" Icon="@Icons.Material.Filled.Edit">
+                <MudForm @ref="_form" @bind-IsValid="@_formIsValid" Class="mt-4">
+                    <MudTextField @bind-Value="_model.Name"
+                                  Label="Force Name"
+                                  Placeholder="e.g., The Emperor's Finest"
+                                  Variant="Variant.Outlined"
+                                  Required="true"
+                                  RequiredError="Force name is required"
+                                  Class="mb-3" />
 
-            <MudSelect @bind-Value="_model.Faction"
-                       Label="Faction"
-                       Variant="Variant.Outlined"
-                       Required="true"
-                       RequiredError="Please select a faction"
-                       Class="mb-3">
-                <MudSelectItem Value="@("Adeptus Astartes")">Adeptus Astartes</MudSelectItem>
-                <MudSelectItem Value="@("Adeptus Custodes")">Adeptus Custodes</MudSelectItem>
-                <MudSelectItem Value="@("Adeptus Mechanicus")">Adeptus Mechanicus</MudSelectItem>
-                <MudSelectItem Value="@("Aeldari")">Aeldari</MudSelectItem>
-                <MudSelectItem Value="@("Astra Militarum")">Astra Militarum</MudSelectItem>
-                <MudSelectItem Value="@("Chaos Daemons")">Chaos Daemons</MudSelectItem>
-                <MudSelectItem Value="@("Chaos Knights")">Chaos Knights</MudSelectItem>
-                <MudSelectItem Value="@("Chaos Space Marines")">Chaos Space Marines</MudSelectItem>
-                <MudSelectItem Value="@("Death Guard")">Death Guard</MudSelectItem>
-                <MudSelectItem Value="@("Drukhari")">Drukhari</MudSelectItem>
-                <MudSelectItem Value="@("Genestealer Cults")">Genestealer Cults</MudSelectItem>
-                <MudSelectItem Value="@("Grey Knights")">Grey Knights</MudSelectItem>
-                <MudSelectItem Value="@("Imperial Knights")">Imperial Knights</MudSelectItem>
-                <MudSelectItem Value="@("Leagues of Votann")">Leagues of Votann</MudSelectItem>
-                <MudSelectItem Value="@("Necrons")">Necrons</MudSelectItem>
-                <MudSelectItem Value="@("Orks")">Orks</MudSelectItem>
-                <MudSelectItem Value="@("Sisters of Battle")">Sisters of Battle</MudSelectItem>
-                <MudSelectItem Value="@("T'au Empire")">T'au Empire</MudSelectItem>
-                <MudSelectItem Value="@("Thousand Sons")">Thousand Sons</MudSelectItem>
-                <MudSelectItem Value="@("Tyranids")">Tyranids</MudSelectItem>
-                <MudSelectItem Value="@("World Eaters")">World Eaters</MudSelectItem>
-            </MudSelect>
+                    <MudSelect @bind-Value="_model.Faction"
+                               Label="Faction"
+                               Variant="Variant.Outlined"
+                               Required="true"
+                               RequiredError="Please select a faction"
+                               Class="mb-3">
+                        <MudSelectItem Value="@("Adeptus Astartes")">Adeptus Astartes</MudSelectItem>
+                        <MudSelectItem Value="@("Adeptus Custodes")">Adeptus Custodes</MudSelectItem>
+                        <MudSelectItem Value="@("Adeptus Mechanicus")">Adeptus Mechanicus</MudSelectItem>
+                        <MudSelectItem Value="@("Aeldari")">Aeldari</MudSelectItem>
+                        <MudSelectItem Value="@("Astra Militarum")">Astra Militarum</MudSelectItem>
+                        <MudSelectItem Value="@("Chaos Daemons")">Chaos Daemons</MudSelectItem>
+                        <MudSelectItem Value="@("Chaos Knights")">Chaos Knights</MudSelectItem>
+                        <MudSelectItem Value="@("Chaos Space Marines")">Chaos Space Marines</MudSelectItem>
+                        <MudSelectItem Value="@("Death Guard")">Death Guard</MudSelectItem>
+                        <MudSelectItem Value="@("Drukhari")">Drukhari</MudSelectItem>
+                        <MudSelectItem Value="@("Genestealer Cults")">Genestealer Cults</MudSelectItem>
+                        <MudSelectItem Value="@("Grey Knights")">Grey Knights</MudSelectItem>
+                        <MudSelectItem Value="@("Imperial Knights")">Imperial Knights</MudSelectItem>
+                        <MudSelectItem Value="@("Leagues of Votann")">Leagues of Votann</MudSelectItem>
+                        <MudSelectItem Value="@("Necrons")">Necrons</MudSelectItem>
+                        <MudSelectItem Value="@("Orks")">Orks</MudSelectItem>
+                        <MudSelectItem Value="@("Sisters of Battle")">Sisters of Battle</MudSelectItem>
+                        <MudSelectItem Value="@("T'au Empire")">T'au Empire</MudSelectItem>
+                        <MudSelectItem Value="@("Thousand Sons")">Thousand Sons</MudSelectItem>
+                        <MudSelectItem Value="@("Tyranids")">Tyranids</MudSelectItem>
+                        <MudSelectItem Value="@("World Eaters")">World Eaters</MudSelectItem>
+                    </MudSelect>
 
-            <MudNumericField @bind-Value="_model.SupplyLimit"
-                             Label="Points Limit"
-                             Variant="Variant.Outlined"
-                             Min="500"
-                             Max="10000"
-                             Step="100"
-                             HelperText="Total points available for your Crusade force (typically 1000-2000)"
-                             Class="mb-4" />
+                    <MudNumericField @bind-Value="_model.SupplyLimit"
+                                     Label="Points Limit"
+                                     Variant="Variant.Outlined"
+                                     Min="500"
+                                     Max="10000"
+                                     Step="100"
+                                     HelperText="Total points available for your Crusade force (typically 1000-2000)"
+                                     Class="mb-4" />
 
-            <MudStack Row="true" Spacing="2">
-                <MudButton Variant="Variant.Filled"
-                           Color="Color.Warning"
-                           Size="Size.Large"
-                           Disabled="@(!_formIsValid || _isLoading)"
-                           OnClick="HandleCreate">
-                    @if (_isLoading)
+                    <MudStack Row="true" Spacing="2">
+                        <MudButton Variant="Variant.Filled"
+                                   Color="Color.Warning"
+                                   Size="Size.Large"
+                                   Disabled="@(!_formIsValid || _isLoading)"
+                                   OnClick="HandleCreate">
+                            @if (_isLoading)
+                            {
+                                <MudProgressCircular Class="mr-2" Size="Size.Small" Indeterminate="true" />
+                                <span>Creating...</span>
+                            }
+                            else
+                            {
+                                <span>Create Force</span>
+                            }
+                        </MudButton>
+                        <MudButton Variant="Variant.Outlined"
+                                   Color="Color.Default"
+                                   Size="Size.Large"
+                                   Href="/forces">
+                            Cancel
+                        </MudButton>
+                    </MudStack>
+                </MudForm>
+            </MudTabPanel>
+
+            <MudTabPanel Text="Import from Battle Forge" Icon="@Icons.Material.Filled.FileUpload">
+                <MudForm @ref="_importForm" @bind-IsValid="@_importFormIsValid" Class="mt-4">
+                    <MudAlert Severity="Severity.Info" Class="mb-3" Variant="Variant.Outlined">
+                        Paste the exported text from the Games Workshop App Battle Forge below. Your force name, faction, points limit, and all units with their loadouts will be imported automatically.
+                    </MudAlert>
+
+                    <MudTextField @bind-Value="_importText"
+                                  Label="Battle Forge Export"
+                                  Placeholder="Paste your Battle Forge export here..."
+                                  Variant="Variant.Outlined"
+                                  Lines="12"
+                                  Required="true"
+                                  RequiredError="Export text is required"
+                                  Class="mb-4" />
+
+                    @if (_importPreview is not null)
                     {
-                        <MudProgressCircular Class="mr-2" Size="Size.Small" Indeterminate="true" />
-                        <span>Creating...</span>
+                        <MudPaper Class="pa-4 mb-4" Elevation="0" Style="background: #1a1a2e; border: 1px solid #d4af37;">
+                            <MudText Typo="Typo.h6" Style="color: #d4af37;">@_importPreview.Name</MudText>
+                            <MudStack Row="true" Spacing="2" Class="mt-1 mb-2">
+                                <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Outlined">@_importPreview.Faction</MudChip>
+                                <MudChip T="string" Size="Size.Small" Color="Color.Warning" Variant="Variant.Outlined">@_importPreview.PointsLimit pts</MudChip>
+                                @if (!string.IsNullOrEmpty(_importPreview.Detachment))
+                                {
+                                    <MudChip T="string" Size="Size.Small" Color="Color.Info" Variant="Variant.Outlined">@_importPreview.Detachment</MudChip>
+                                }
+                            </MudStack>
+                            <MudText Typo="Typo.subtitle2" Class="mb-2" Style="color: #9a9ab0;">@_importPreview.Units.Count unit(s)</MudText>
+                            <MudSimpleTable Dense="true" Hover="true" Elevation="0" Style="background: transparent;">
+                                <thead>
+                                    <tr>
+                                        <th>Unit</th>
+                                        <th>Role</th>
+                                        <th style="text-align:right">Points</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var unit in _importPreview.Units)
+                                    {
+                                        <tr>
+                                            <td>@unit.Name</td>
+                                            <td><MudChip T="string" Size="Size.Small" Variant="Variant.Text">@FormatRole(unit.BattlefieldRole)</MudChip></td>
+                                            <td style="text-align:right">@unit.Points</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </MudSimpleTable>
+                        </MudPaper>
                     }
-                    else
+
+                    @if (_importError is not null)
                     {
-                        <span>Create Force</span>
+                        <MudAlert Severity="Severity.Error" Class="mb-4" Variant="Variant.Outlined">@_importError</MudAlert>
                     }
-                </MudButton>
-                <MudButton Variant="Variant.Outlined"
-                           Color="Color.Default"
-                           Size="Size.Large"
-                           Href="/forces">
-                    Cancel
-                </MudButton>
-            </MudStack>
-        </MudForm>
+
+                    <MudStack Row="true" Spacing="2">
+                        <MudButton Variant="Variant.Outlined"
+                                   Color="Color.Info"
+                                   Size="Size.Large"
+                                   Disabled="@(string.IsNullOrWhiteSpace(_importText) || _isLoading)"
+                                   OnClick="HandlePreview">
+                            Preview
+                        </MudButton>
+                        <MudButton Variant="Variant.Filled"
+                                   Color="Color.Warning"
+                                   Size="Size.Large"
+                                   Disabled="@(_importPreview is null || _isLoading)"
+                                   OnClick="HandleImport">
+                            @if (_isLoading)
+                            {
+                                <MudProgressCircular Class="mr-2" Size="Size.Small" Indeterminate="true" />
+                                <span>Importing...</span>
+                            }
+                            else
+                            {
+                                <span>Import Force</span>
+                            }
+                        </MudButton>
+                        <MudButton Variant="Variant.Outlined"
+                                   Color="Color.Default"
+                                   Size="Size.Large"
+                                   Href="/forces">
+                            Cancel
+                        </MudButton>
+                    </MudStack>
+                </MudForm>
+            </MudTabPanel>
+        </MudTabs>
     </MudPaper>
 </MudContainer>
 
 @code {
     private MudForm _form = default!;
+    private MudForm _importForm = default!;
     private CreateForceModel _model = new() { SupplyLimit = 1000 };
     private bool _formIsValid;
+    private bool _importFormIsValid;
     private bool _isLoading;
+    private int _activeTab;
+
+    // Import state
+    private string _importText = string.Empty;
+    private BattleForgeForce? _importPreview;
+    private string? _importError;
 
     private async Task HandleCreate()
     {
@@ -120,6 +220,63 @@
             _isLoading = false;
         }
     }
+
+    private void HandlePreview()
+    {
+        _importPreview = null;
+        _importError = null;
+
+        try
+        {
+            _importPreview = BattleForgeParser.Parse(_importText);
+        }
+        catch (Exception ex)
+        {
+            _importError = $"Could not parse export: {ex.Message}";
+        }
+    }
+
+    private async Task HandleImport()
+    {
+        if (_importPreview is null) return;
+
+        _isLoading = true;
+        _importError = null;
+
+        try
+        {
+            var result = await ForceService.ImportForceAsync(_importText);
+
+            if (result is not null)
+            {
+                Snackbar.Add($"{result.Name} imported with {result.Units.Count} units!", Severity.Success);
+                Navigation.NavigateTo($"/forces/{result.Id}");
+            }
+            else
+            {
+                Snackbar.Add("Failed to import force. Please try again.", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private static string FormatRole(string role) => role switch
+    {
+        "CHARACTERS" => "Character",
+        "BATTLELINE" => "Battleline",
+        "DEDICATED TRANSPORTS" => "Transport",
+        "OTHER DATASHEETS" => "Other",
+        "ALLIED UNITS" => "Allied",
+        "FORTIFICATIONS" => "Fortification",
+        _ => role
+    };
 
     private class CreateForceModel
     {

@@ -20,6 +20,7 @@ public sealed class CrusadeUnitConfigurationConfig : IEntityTypeConfiguration<Cr
 
         builder.Property(x => x.Name).HasMaxLength(200).IsRequired();
         builder.Property(x => x.DataSheet).HasMaxLength(200).IsRequired();
+        builder.Property(x => x.BattlefieldRole).HasMaxLength(100).HasDefaultValue("");
 
         builder.Property(x => x.Points)
             .HasConversion(
@@ -36,6 +37,7 @@ public sealed class CrusadeUnitConfigurationConfig : IEntityTypeConfiguration<Cr
             .IsRequired();
 
         // Ignore public read-only collection properties
+        builder.Ignore(x => x.Equipment);
         builder.Ignore(x => x.BattleHonours);
         builder.Ignore(x => x.BattleScars);
 
@@ -48,6 +50,13 @@ public sealed class CrusadeUnitConfigurationConfig : IEntityTypeConfiguration<Cr
             (c1, c2) => c1!.SequenceEqual(c2!),
             c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
             c => c.ToList());
+
+        builder.Property<List<string>>("_equipment")
+            .HasField("_equipment")
+            .UsePropertyAccessMode(PropertyAccessMode.Field)
+            .HasColumnName("Equipment")
+            .HasConversion(stringListConverter)
+            .Metadata.SetValueComparer(stringListComparer);
 
         builder.Property<List<string>>("_battleHonours")
             .HasField("_battleHonours")

@@ -7,8 +7,12 @@ public sealed class CrusadeUnit : Entity<UnitId>
 {
     public string Name { get; private set; } = default!;
     public string DataSheet { get; private set; } = default!;
+    public string BattlefieldRole { get; private set; } = "";
     public Points Points { get; private set; }
     public ExperiencePoints ExperiencePoints { get; private set; }
+
+    private readonly List<string> _equipment = new();
+    public IReadOnlyCollection<string> Equipment => _equipment.AsReadOnly();
 
     // TODO: Updgrade to a proper value object.
     private readonly List<string> _battleHonours = new();
@@ -22,14 +26,26 @@ public sealed class CrusadeUnit : Entity<UnitId>
     public CrusadeUnit(
         UnitId id,
         string name,
-        string dataSheet, 
-        Points points)
+        string dataSheet,
+        Points points,
+        string battlefieldRole = "",
+        IReadOnlyList<string>? equipment = null)
     {
         Id = id;
         Rename(name);
         DataSheet = string.IsNullOrWhiteSpace(dataSheet) ? throw new ArgumentException(nameof(dataSheet), "DataSheet cannot be blank or null.") : dataSheet.Trim();
         Points = points;
+        BattlefieldRole = battlefieldRole?.Trim() ?? "";
         ExperiencePoints = new ExperiencePoints();
+
+        if (equipment is not null)
+        {
+            foreach (var item in equipment)
+            {
+                if (!string.IsNullOrWhiteSpace(item))
+                    _equipment.Add(item.Trim());
+            }
+        }
     }
 
     public void Rename(string name)

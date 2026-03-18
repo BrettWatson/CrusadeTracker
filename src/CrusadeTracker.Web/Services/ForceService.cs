@@ -34,6 +34,17 @@ public class ForceService
         return await response.Content.ReadFromJsonAsync<ForceResponse>();
     }
 
+    public async Task<ForceDetailResponse?> ImportForceAsync(string battleForgeExport)
+    {
+        var request = new ImportForceRequest(battleForgeExport);
+        var response = await _httpClient.PostAsJsonAsync("api/forces/import", request);
+
+        if (!response.IsSuccessStatusCode)
+            return null;
+
+        return await response.Content.ReadFromJsonAsync<ForceDetailResponse>();
+    }
+
     public async Task<ForceResponse?> UpdateForceAsync(Guid id, string name, string faction)
     {
         var request = new UpdateForceRequest(name, faction);
