@@ -7,8 +7,8 @@
 <PageTitle>Create Force - Crusade Tracker</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.Small">
-    <MudPaper Class="pa-6 mt-4" Elevation="3" Style="background: #252540;">
-        <MudText Typo="Typo.h4" Class="mb-4" Style="color: #d4af37;">Create New Crusade Force</MudText>
+    <MudPaper Class="pa-6 mt-4 ct-bg-card" Elevation="3">
+        <MudText Typo="Typo.h4" Class="mb-4 ct-text-gold">Create New Crusade Force</MudText>
 
         <MudTabs @bind-ActivePanelIndex="_activeTab" Elevation="0" Rounded="true" ApplyEffectsToContainer="true" Class="mb-4">
             <MudTabPanel Text="Manual" Icon="@Icons.Material.Filled.Edit">
@@ -102,8 +102,8 @@
 
                     @if (_importPreview is not null)
                     {
-                        <MudPaper Class="pa-4 mb-4" Elevation="0" Style="background: #1a1a2e; border: 1px solid #d4af37;">
-                            <MudText Typo="Typo.h6" Style="color: #d4af37;">@_importPreview.Name</MudText>
+                        <MudPaper Class="pa-4 mb-4 ct-import-preview" Elevation="0">
+                            <MudText Typo="Typo.h6" Class="ct-text-gold">@_importPreview.Name</MudText>
                             <MudStack Row="true" Spacing="2" Class="mt-1 mb-2">
                                 <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Outlined">@_importPreview.Faction</MudChip>
                                 <MudChip T="string" Size="Size.Small" Color="Color.Warning" Variant="Variant.Outlined">@_importPreview.PointsLimit pts</MudChip>
@@ -112,13 +112,13 @@
                                     <MudChip T="string" Size="Size.Small" Color="Color.Info" Variant="Variant.Outlined">@_importPreview.Detachment</MudChip>
                                 }
                             </MudStack>
-                            <MudText Typo="Typo.subtitle2" Class="mb-2" Style="color: #9a9ab0;">@_importPreview.Units.Count unit(s)</MudText>
-                            <MudSimpleTable Dense="true" Hover="true" Elevation="0" Style="background: transparent;">
+                            <MudText Typo="Typo.subtitle2" Class="mb-2 ct-text-muted">@_importPreview.Units.Count unit(s)</MudText>
+                            <MudSimpleTable Dense="true" Hover="true" Elevation="0" Class="ct-bg-transparent">
                                 <thead>
                                     <tr>
                                         <th>Unit</th>
                                         <th>Role</th>
-                                        <th style="text-align:right">Points</th>
+                                        <th class="ct-text-right">Points</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -127,7 +127,7 @@
                                         <tr>
                                             <td>@unit.Name</td>
                                             <td><MudChip T="string" Size="Size.Small" Variant="Variant.Text">@FormatRole(unit.BattlefieldRole)</MudChip></td>
-                                            <td style="text-align:right">@unit.Points</td>
+                                            <td class="ct-text-right">@unit.Points</td>
                                         </tr>
                                     }
                                 </tbody>

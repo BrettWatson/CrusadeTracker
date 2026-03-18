@@ -23,8 +23,8 @@ else
 {
     <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Start" Class="mb-4">
         <MudStack Spacing="1">
-            <MudText Typo="Typo.h4" Style="color: #d4af37;">@_battle.Mission</MudText>
-            <MudText Typo="Typo.subtitle1" Style="color: #9a9ab0;">@_battle.Date.ToString("MMMM d, yyyy") — @_battle.PointsLimit pts</MudText>
+            <MudText Typo="Typo.h4" Class="ct-text-gold">@_battle.Mission</MudText>
+            <MudText Typo="Typo.subtitle1" Class="ct-text-muted">@_battle.Date.ToString("MMMM d, yyyy") — @_battle.PointsLimit pts</MudText>
         </MudStack>
         <MudStack Row="true" Spacing="2">
             <MudButton Variant="Variant.Outlined" Color="Color.Default" Href="/battles">Back to Battles</MudButton>
@@ -37,10 +37,10 @@ else
 
     <MudGrid>
         <MudItem xs="12" md="8">
-            <MudCard Elevation="3" Style="background: #252540;">
+            <MudCard Elevation="3" Class="ct-bg-card">
                 <MudCardHeader>
                     <CardHeaderContent>
-                        <MudText Typo="Typo.h5" Style="color: #e8e8e8;">Participants</MudText>
+                        <MudText Typo="Typo.h5" Class="ct-text-primary">Participants</MudText>
                     </CardHeaderContent>
                     <CardHeaderActions>
                         @if (!_battle.IsFinalized)
@@ -61,12 +61,12 @@ else
                     {
                         @foreach (var participant in _battle.Participants)
                         {
-                            <MudCard Class="mb-3" Style="background: #1e1e35;">
+                            <MudCard Class="mb-3 ct-bg-card-inner">
                                 <MudCardContent>
                                     <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
                                         <MudStack Spacing="0">
-                                            <MudText Typo="Typo.subtitle1" Style="color: #e8e8e8;">@(participant.ForceNameSnapshot ?? "Unknown Force")</MudText>
-                                            <MudText Typo="Typo.caption" Style="color: #9a9ab0;">@participant.Units.Sum(u => u.Points) / @_battle.PointsLimit pts</MudText>
+                                            <MudText Typo="Typo.subtitle1" Class="ct-text-primary">@(participant.ForceNameSnapshot ?? "Unknown Force")</MudText>
+                                            <MudText Typo="Typo.caption" Class="ct-text-muted">@participant.Units.Sum(u => u.Points) / @_battle.PointsLimit pts</MudText>
                                         </MudStack>
                                         <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
                                             <MudChip T="string" Size="Size.Small" Color="@GetResultColor(participant.Result)">
@@ -86,19 +86,19 @@ else
                                     @if (participant.Units.Count > 0)
                                     {
                                         <MudDivider Class="my-2" />
-                                        <MudSimpleTable Dense="true" Style="background: transparent;">
+                                        <MudSimpleTable Dense="true" Class="ct-bg-transparent">
                                             <thead>
                                                 <tr>
-                                                    <th style="color: #9a9ab0;">Unit</th>
-                                                    <th style="color: #9a9ab0; text-align: right;">Points</th>
+                                                    <th class="ct-text-muted">Unit</th>
+                                                    <th class="ct-text-muted ct-text-right">Points</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 @foreach (var unit in participant.Units)
                                                 {
                                                     <tr>
-                                                        <td style="color: #e8e8e8;">@unit.UnitNameSnapshot</td>
-                                                        <td style="color: #d4af37; text-align: right;">@unit.Points</td>
+                                                        <td class="ct-text-primary">@unit.UnitNameSnapshot</td>
+                                                        <td class="ct-text-gold ct-text-right">@unit.Points</td>
                                                     </tr>
                                                 }
                                             </tbody>
@@ -113,12 +113,12 @@ else
         </MudItem>
 
         <MudItem xs="12" md="4">
-            <MudCard Elevation="3" Style="background: #252540; border-top: 3px solid #d4af37;">
+            <MudCard Elevation="3" Class="ct-card-accent">
                 <MudCardContent>
-                    <MudText Typo="Typo.h6" Style="color: #9a9ab0;">Battle Status</MudText>
+                    <MudText Typo="Typo.h6" Class="ct-text-muted">Battle Status</MudText>
                     <MudStack Class="mt-3" Spacing="2">
                         <MudStack Row="true" Justify="Justify.SpaceBetween">
-                            <MudText Style="color: #9a9ab0;">Status</MudText>
+                            <MudText Class="ct-text-muted">Status</MudText>
                             @if (_battle.IsFinalized)
                             {
                                 <MudChip T="string" Size="Size.Small" Color="Color.Success">Finalized</MudChip>
@@ -129,16 +129,16 @@ else
                             }
                         </MudStack>
                         <MudStack Row="true" Justify="Justify.SpaceBetween">
-                            <MudText Style="color: #9a9ab0;">Points Limit</MudText>
-                            <MudText Style="color: #d4af37; font-weight: 600;">@_battle.PointsLimit</MudText>
+                            <MudText Class="ct-text-muted">Points Limit</MudText>
+                            <MudText Class="ct-text-gold-semibold">@_battle.PointsLimit</MudText>
                         </MudStack>
                         <MudStack Row="true" Justify="Justify.SpaceBetween">
-                            <MudText Style="color: #9a9ab0;">Participants</MudText>
-                            <MudText Style="color: #d4af37; font-weight: 600;">@_battle.Participants.Count</MudText>
+                            <MudText Class="ct-text-muted">Participants</MudText>
+                            <MudText Class="ct-text-gold-semibold">@_battle.Participants.Count</MudText>
                         </MudStack>
                         <MudStack Row="true" Justify="Justify.SpaceBetween">
-                            <MudText Style="color: #9a9ab0;">Created</MudText>
-                            <MudText Style="color: #e8e8e8;">@_battle.CreatedAt.ToString("MMM d, yyyy")</MudText>
+                            <MudText Class="ct-text-muted">Created</MudText>
+                            <MudText Class="ct-text-primary">@_battle.CreatedAt.ToString("MMM d, yyyy")</MudText>
                         </MudStack>
                     </MudStack>
                 </MudCardContent>
@@ -146,9 +146,9 @@ else
 
             @if (!_battle.IsFinalized)
             {
-                <MudCard Elevation="3" Style="background: #252540; margin-top: 16px;">
+                <MudCard Elevation="3" Class="ct-bg-card mt-4">
                     <MudCardContent>
-                        <MudText Typo="Typo.h6" Style="color: #9a9ab0;">Quick Actions</MudText>
+                        <MudText Typo="Typo.h6" Class="ct-text-muted">Quick Actions</MudText>
                         <MudStack Class="mt-3" Spacing="2">
                             <MudButton Variant="Variant.Outlined" Color="Color.Warning" FullWidth="true"
                                        StartIcon="@Icons.Material.Filled.Add" OnClick="ShowAddParticipantDialog">

@@ -8,7 +8,7 @@
 
 <PageTitle>My Battles - Crusade Tracker</PageTitle>
 
-<MudText Typo="Typo.h4" Class="mb-4" Style="color: #d4af37;">My Battles</MudText>
+<MudText Typo="Typo.h4" Class="mb-4 ct-text-gold">My Battles</MudText>
 
 @if (_isLoading)
 {
@@ -22,7 +22,7 @@ else if (_battles is null || _battles.Count == 0)
 }
 else
 {
-    <MudTable Items="@_battles" Breakpoint="Breakpoint.Sm" Style="background: #252540;">
+    <MudTable Items="@_battles" Breakpoint="Breakpoint.Sm" Class="ct-bg-card">
         <HeaderContent>
             <MudTh>Date</MudTh>
             <MudTh>Mission</MudTh>
@@ -62,7 +62,7 @@ else
     </MudTable>
 }
 
-<MudFab Color="Color.Warning" StartIcon="@Icons.Material.Filled.Add" Style="position: fixed; bottom: 30px; right: 30px;" Href="/battles/create" />
+<MudFab Color="Color.Warning" StartIcon="@Icons.Material.Filled.Add" Class="ct-fab-fixed" Href="/battles/create" />
 
 @code {
     private List<BattleResponse>? _battles;

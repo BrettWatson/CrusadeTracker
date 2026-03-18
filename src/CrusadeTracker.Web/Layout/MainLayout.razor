@@ -8,7 +8,9 @@
 <MudLayout>
     <MudAppBar Elevation="1" Color="Color.Dark">
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@ToggleDrawer" />
-        <MudText Typo="Typo.h5" Class="ml-3" Style="color: #d4af37; font-weight: 600;">Crusade Tracker</MudText>
+        <MudImage Src="images/logo.png" Alt="Crusade Tracker Logo" Class="nav-logo"/>
+
+        @* <MudText Typo="Typo.h5" Class="ml-3" Style="color: #d4af37; font-weight: 600;">Crusade Tracker</MudText> *@
         <MudSpacer />
         <AuthorizeView>
             <Authorized>

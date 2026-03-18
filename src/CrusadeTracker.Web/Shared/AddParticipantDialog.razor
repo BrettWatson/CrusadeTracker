@@ -27,7 +27,7 @@
             }
             else if (_forceDetail is not null && _forceDetail.Units.Count > 0)
             {
-                <MudText Typo="Typo.subtitle2" Class="mb-2" Style="color: #d4af37;">
+                <MudText Typo="Typo.subtitle2" Class="mb-2 ct-text-gold">
                     Select Units (@_selectedTotalPoints / @PointsLimit pts)
                 </MudText>
 
@@ -38,7 +38,7 @@
                     </MudAlert>
                 }
 
-                <MudPaper Class="pa-3 mb-3" Style="background: #1e1e35;">
+                <MudPaper Class="pa-3 mb-3 ct-bg-card-inner">
                     @foreach (var unit in _forceDetail.Units)
                     {
                         <MudCheckBox T="bool"

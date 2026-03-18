@@ -6,8 +6,8 @@
 <PageTitle>Register - Crusade Tracker</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.Small">
-    <MudPaper Class="pa-6 mt-8" Elevation="3" Style="background: #252540;">
-        <MudText Typo="Typo.h4" Class="mb-4" Style="color: #d4af37;">Create Account</MudText>
+    <MudPaper Class="pa-6 mt-8 ct-bg-card" Elevation="3">
+        <MudText Typo="Typo.h4" Class="mb-4 ct-text-gold">Create Account</MudText>
 
         <MudForm @ref="_form" @bind-IsValid="@_formIsValid">
             <MudTextField @bind-Value="_registerModel.Email"
@@ -69,7 +69,7 @@
 
         <MudDivider Class="my-4" />
 
-        <MudText Align="Align.Center" Style="color: #9a9ab0;">
+        <MudText Align="Align.Center" Class="ct-text-muted">
             Already have an account? <MudLink Href="/login" Color="Color.Warning">Login here</MudLink>
         </MudText>
     </MudPaper>

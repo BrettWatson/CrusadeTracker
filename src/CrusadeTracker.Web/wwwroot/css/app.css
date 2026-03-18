@@ -5,6 +5,7 @@
     --ct-bg-dark: #1a1a2e;
     --ct-bg-darker: #0f0f1a;
     --ct-bg-card: #252540;
+    --ct-bg-card-inner: #1e1e35;
     --ct-bg-card-hover: #2d2d4a;
     --ct-gold: #d4af37;
     --ct-gold-light: #f4d03f;
@@ -129,4 +130,94 @@ html, body {
 /* Input styling */
 input, select, textarea {
     color-scheme: dark;
+}
+
+.nav-logo {
+    height: 100%;
+}
+
+/* ===== THEME UTILITY CLASSES ===== */
+/* Text colors */
+.ct-text-gold {
+    color: var(--ct-gold);
+}
+
+.ct-text-gold-bold {
+    color: var(--ct-gold);
+    font-weight: 700;
+}
+
+.ct-text-gold-semibold {
+    color: var(--ct-gold);
+    font-weight: 600;
+}
+
+.ct-text-primary {
+    color: var(--ct-text);
+}
+
+.ct-text-muted {
+    color: var(--ct-text-muted);
+}
+
+.ct-text-danger {
+    color: var(--ct-red-light);
+}
+
+/* Background colors */
+.ct-bg-card {
+    background: var(--ct-bg-card);
+}
+
+.ct-bg-card-inner {
+    background: var(--ct-bg-card-inner);
+}
+
+.ct-bg-transparent {
+    background: transparent;
+}
+
+/* Component patterns */
+.ct-card-accent {
+    background: var(--ct-bg-card);
+    border-top: 3px solid var(--ct-gold);
+}
+
+.ct-card-accent-full {
+    background: var(--ct-bg-card);
+    border-top: 3px solid var(--ct-gold);
+    height: 100%;
+}
+
+.ct-chip-faction {
+    background: linear-gradient(135deg, var(--ct-border) 0%, var(--ct-bg-card) 100%);
+    color: var(--ct-gold);
+}
+
+.ct-gradient-title {
+    background: linear-gradient(135deg, var(--ct-gold) 0%, var(--ct-gold-light) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: 700;
+}
+
+.ct-icon-feature {
+    color: var(--ct-gold);
+    font-size: 3rem;
+}
+
+.ct-fab-fixed {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+}
+
+.ct-import-preview {
+    background: var(--ct-bg-dark);
+    border: 1px solid var(--ct-gold);
+}
+
+.ct-text-right {
+    text-align: right;
 }

@@ -4,16 +4,16 @@
 
 <MudContainer MaxWidth="MaxWidth.Large" Class="py-8">
     <MudStack AlignItems="AlignItems.Center" Spacing="4" Class="text-center">
-        <MudText Typo="Typo.h2" Style="background: linear-gradient(135deg, #d4af37 0%, #f4d03f 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 700;">
+        <MudText Typo="Typo.h2" Class="ct-gradient-title">
             Crusade Tracker
         </MudText>
-        <MudText Typo="Typo.h6" Style="color: #9a9ab0;">
+        <MudText Typo="Typo.h6" Class="ct-text-muted">
             Track your Warhammer 40k Crusade forces, units, battles, and campaigns.
         </MudText>
 
         <AuthorizeView>
             <Authorized>
-                <MudText Class="mt-4" Style="color: #e8e8e8;">Ready to continue your crusade, Commander?</MudText>
+                <MudText Class="mt-4 ct-text-primary">Ready to continue your crusade, Commander?</MudText>
                 <MudButton Variant="Variant.Filled"
                            Color="Color.Warning"
                            Size="Size.Large"
@@ -24,7 +24,7 @@
                 </MudButton>
             </Authorized>
             <NotAuthorized>
-                <MudText Class="mt-4" Style="color: #9a9ab0;">Sign in to start tracking your Crusade progress.</MudText>
+                <MudText Class="mt-4 ct-text-muted">Sign in to start tracking your Crusade progress.</MudText>
                 <MudStack Row="true" Spacing="2" Class="mt-2">
                     <MudButton Variant="Variant.Filled"
                                Color="Color.Warning"
@@ -45,33 +45,33 @@
 
     <MudGrid Class="mt-8" Spacing="4">
         <MudItem xs="12" md="4">
-            <MudCard Elevation="3" Style="background: #252540; border-top: 3px solid #d4af37; height: 100%;">
+            <MudCard Elevation="3" Class="ct-card-accent-full">
                 <MudCardContent Class="text-center pa-6">
-                    <MudIcon Icon="@Icons.Material.Filled.Shield" Size="Size.Large" Style="color: #d4af37; font-size: 3rem;" Class="mb-3" />
-                    <MudText Typo="Typo.h5" Style="color: #e8e8e8;" Class="mb-2">Manage Forces</MudText>
-                    <MudText Style="color: #9a9ab0;">
+                    <MudIcon Icon="@Icons.Material.Filled.Shield" Size="Size.Large" Class="mb-3 ct-icon-feature" />
+                    <MudText Typo="Typo.h5" Class="mb-2 ct-text-primary">Manage Forces</MudText>
+                    <MudText Class="ct-text-muted">
                         Create and organize your Crusade forces with faction details and supply limits.
                     </MudText>
                 </MudCardContent>
             </MudCard>
         </MudItem>
         <MudItem xs="12" md="4">
-            <MudCard Elevation="3" Style="background: #252540; border-top: 3px solid #d4af37; height: 100%;">
+            <MudCard Elevation="3" Class="ct-card-accent-full">
                 <MudCardContent Class="text-center pa-6">
-                    <MudIcon Icon="@Icons.Material.Filled.Groups" Size="Size.Large" Style="color: #d4af37; font-size: 3rem;" Class="mb-3" />
-                    <MudText Typo="Typo.h5" Style="color: #e8e8e8;" Class="mb-2">Track Units</MudText>
-                    <MudText Style="color: #9a9ab0;">
+                    <MudIcon Icon="@Icons.Material.Filled.Groups" Size="Size.Large" Class="mb-3 ct-icon-feature" />
+                    <MudText Typo="Typo.h5" Class="mb-2 ct-text-primary">Track Units</MudText>
+                    <MudText Class="ct-text-muted">
                         Add units to your forces, track experience, battle honours, and battle scars.
                     </MudText>
                 </MudCardContent>
             </MudCard>
         </MudItem>
         <MudItem xs="12" md="4">
-            <MudCard Elevation="3" Style="background: #252540; border-top: 3px solid #d4af37; height: 100%;">
+            <MudCard Elevation="3" Class="ct-card-accent-full">
                 <MudCardContent Class="text-center pa-6">
-                    <MudIcon Icon="@Icons.Material.Filled.SportsKabaddi" Size="Size.Large" Style="color: #d4af37; font-size: 3rem;" Class="mb-3" />
-                    <MudText Typo="Typo.h5" Style="color: #e8e8e8;" Class="mb-2">Record Battles</MudText>
-                    <MudText Style="color: #9a9ab0;">
+                    <MudIcon Icon="@Icons.Material.Filled.SportsKabaddi" Size="Size.Large" Class="mb-3 ct-icon-feature" />
+                    <MudText Typo="Typo.h5" Class="mb-2 ct-text-primary">Record Battles</MudText>
+                    <MudText Class="ct-text-muted">
                         Log your battles, track victories and defeats, and watch your forces grow.
                     </MudText>
                 </MudCardContent>

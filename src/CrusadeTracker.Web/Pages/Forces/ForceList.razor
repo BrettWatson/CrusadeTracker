@@ -9,7 +9,7 @@
 
 <PageTitle>My Forces - Crusade Tracker</PageTitle>
 
-<MudText Typo="Typo.h4" Class="mb-4" Style="color: #d4af37;">My Crusade Forces</MudText>
+<MudText Typo="Typo.h4" Class="mb-4 ct-text-gold">My Crusade Forces</MudText>
 
 @if (_isLoading)
 {
@@ -27,11 +27,11 @@ else
         @foreach (var force in _forces)
         {
             <MudItem xs="12" sm="6" md="4">
-                <MudCard Elevation="3" Style="background: #252540; border-top: 3px solid #d4af37;">
+                <MudCard Elevation="3" Class="ct-card-accent">
                     <MudCardHeader>
                         <CardHeaderContent>
-                            <MudText Typo="Typo.h6" Style="color: #e8e8e8;">@force.Name</MudText>
-                            <MudChip T="string" Size="Size.Small" Style="background: linear-gradient(135deg, #3a3a5c 0%, #252540 100%); color: #d4af37;">@force.Faction</MudChip>
+                            <MudText Typo="Typo.h6" Class="ct-text-primary">@force.Name</MudText>
+                            <MudChip T="string" Size="Size.Small" Class="ct-chip-faction">@force.Faction</MudChip>
                         </CardHeaderContent>
                         <CardHeaderActions>
                             <MudMenu Icon="@Icons.Material.Filled.MoreVert" Color="Color.Default">
@@ -40,26 +40,26 @@ else
                                 <MudDivider />
                                 <MudMenuItem OnClick="@(() => HandleDuplicate(force))">Duplicate</MudMenuItem>
                                 <MudDivider />
-                                <MudMenuItem OnClick="@(() => HandleDelete(force))" Style="color: #c41e3a;">Delete</MudMenuItem>
+                                <MudMenuItem OnClick="@(() => HandleDelete(force))" Class="ct-text-danger">Delete</MudMenuItem>
                             </MudMenu>
                         </CardHeaderActions>
                     </MudCardHeader>
                     <MudCardContent>
                         <MudGrid Spacing="2">
                             <MudItem xs="6" Class="text-center">
-                                <MudText Typo="Typo.h4" Style="color: #d4af37; font-weight: 700;">@force.TotalPoints</MudText>
-                                <MudText Typo="Typo.caption" Style="color: #9a9ab0;">/ @force.PointsLimit pts</MudText>
+                                <MudText Typo="Typo.h4" Class="ct-text-gold-bold">@force.TotalPoints</MudText>
+                                <MudText Typo="Typo.caption" Class="ct-text-muted">/ @force.PointsLimit pts</MudText>
                             </MudItem>
                             <MudItem xs="6" Class="text-center">
-                                <MudText Typo="Typo.h4" Style="color: #d4af37; font-weight: 700;">@force.UnitCount</MudText>
-                                <MudText Typo="Typo.caption" Style="color: #9a9ab0;">Units</MudText>
+                                <MudText Typo="Typo.h4" Class="ct-text-gold-bold">@force.UnitCount</MudText>
+                                <MudText Typo="Typo.caption" Class="ct-text-muted">Units</MudText>
                             </MudItem>
                         </MudGrid>
                         <MudProgressLinear Color="Color.Warning" Value="@(force.PointsLimit > 0 ? (int)(force.TotalPoints * 100 / force.PointsLimit) : 0)" Class="mt-3" />
                     </MudCardContent>
                     <MudCardActions Class="d-flex justify-space-between">
                         <MudButton Variant="Variant.Outlined" Color="Color.Warning" Size="Size.Small" Href="@($"/forces/{force.Id}")">View Details</MudButton>
-                        <MudText Typo="Typo.caption" Style="color: #9a9ab0;">@force.CreatedAt.ToString("MMM d, yyyy")</MudText>
+                        <MudText Typo="Typo.caption" Class="ct-text-muted">@force.CreatedAt.ToString("MMM d, yyyy")</MudText>
                     </MudCardActions>
                 </MudCard>
             </MudItem>
@@ -67,7 +67,7 @@ else
     </MudGrid>
 }
 
-<MudFab Color="Color.Warning" StartIcon="@Icons.Material.Filled.Add" Style="position: fixed; bottom: 30px; right: 30px;" Href="/forces/create" />
+<MudFab Color="Color.Warning" StartIcon="@Icons.Material.Filled.Add" Class="ct-fab-fixed" Href="/forces/create" />
 
 @code {
     private List<ForceResponse>? _forces;
