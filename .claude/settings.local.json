@@ -10,7 +10,8 @@
       "Bash(FORCE_ID=\"76c7b02d-2735-414d-a74d-6fe3def36f1b\":*)",
       "Bash(__NEW_LINE__ curl -s -X POST \"http://localhost:5051/api/forces/$FORCE_ID/units\" )",
       "Bash(dotnet add:*)",
-      "Bash(dotnet run:*)"
+      "Bash(dotnet run:*)",
+      "Bash(cd E:/repos/Personal/CrusadeTracker && dotnet ef database update --project src/CrusadeTracker.Infrastructure --startup-project src/CrusadeTracker.API 2>&1)"
     ]
   }
 }

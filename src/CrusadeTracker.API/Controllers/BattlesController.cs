@@ -4,6 +4,7 @@ using CrusadeTracker.Domain.Battles;
 using CrusadeTracker.Domain.Battles.Repositories;
 using CrusadeTracker.Domain.Common;
 using CrusadeTracker.Domain.Forces.Repositories;
+using CrusadeTracker.Domain.Forces.ValueObjects;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -57,7 +58,7 @@ public class BattlesController : ControllerBase
         CreateBattleRequest request,
         CancellationToken ct)
     {
-        var battle = Battle.Record(request.Date, request.Mission);
+        var battle = Battle.Record(request.Date, request.Mission, new Points(request.PointsLimit));
 
         await _battleRepository.AddAsync(battle, ct);
         await _battleRepository.SaveChangesAsync(ct);
@@ -85,10 +86,24 @@ public class BattlesController : ControllerBase
         if (force.OwnerId != userId)
             return Forbid();
 
+        // Validate all requested unit IDs belong to the force
+        var unitIds = request.UnitIds.Select(uid => new UnitId(uid)).ToHashSet();
+        var selectedUnits = force.Units.Where(u => unitIds.Contains(u.Id)).ToList();
+
+        if (selectedUnits.Count != unitIds.Count)
+        {
+            var missingIds = unitIds.Except(selectedUnits.Select(u => u.Id));
+            return BadRequest(new { error = $"Some unit IDs do not belong to this force: {string.Join(", ", missingIds.Select(id2 => id2.Value))}" });
+        }
+
+        var participantUnits = selectedUnits
+            .Select(u => new ParticipantUnit(u.Id, u.Name, u.Points))
+            .ToList();
+
         try
         {
             var forceNameSnapshot = request.ForceNameSnapshot ?? force.Name;
-            battle.AddParticipant(userId, new ForceId(request.ForceId), forceNameSnapshot);
+            battle.AddParticipant(userId, new ForceId(request.ForceId), participantUnits, forceNameSnapshot);
         }
         catch (InvalidOperationException ex)
         {
@@ -164,12 +179,17 @@ public class BattlesController : ControllerBase
             battle.Id.Value,
             battle.Date,
             battle.Mission,
+            battle.PointsLimit.Value,
             battle.IsFinalized,
             battle.Participants.Select(p => new ParticipantResponse(
                 p.PlayerId.Value,
                 p.ForceId.Value,
                 p.ForceNameSnapshot,
-                p.Result.ToString())).ToList(),
+                p.Result.ToString(),
+                p.Units.Select(u => new ParticipantUnitResponse(
+                    u.UnitId.Value,
+                    u.UnitNameSnapshot,
+                    u.Points.Value)).ToList())).ToList(),
             battle.CreatedAt);
     }
 }

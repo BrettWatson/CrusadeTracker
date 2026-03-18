@@ -6,6 +6,7 @@
 @inject ISnackbar Snackbar
 
 @using CrusadeTracker.Application.Forces.DTOs
+@using CrusadeTracker.Application.Units.DTOs
 
 <PageTitle>Record Battle - Crusade Tracker</PageTitle>
 
@@ -41,23 +42,71 @@
                               RequiredError="Mission is required"
                               Class="mb-3" />
 
-                <MudSelect @bind-Value="_selectedForceId"
+                <MudNumericField @bind-Value="_pointsLimit"
+                                 Label="Battle Points Limit"
+                                 Variant="Variant.Outlined"
+                                 Min="1"
+                                 Required="true"
+                                 RequiredError="Points limit is required"
+                                 Class="mb-3" />
+
+                <MudSelect T="Guid"
+                           Value="_selectedForceId"
                            Label="Your Force"
                            Variant="Variant.Outlined"
                            Required="true"
                            RequiredError="Select a force"
-                           Class="mb-4">
+                           Class="mb-3"
+                           ValueChanged="@((Guid val) => OnForceSelected(val))">
                     @foreach (var force in _forces)
                     {
-                        <MudSelectItem Value="@force.Id">@force.Name (@force.Faction)</MudSelectItem>
+                        <MudSelectItem Value="@force.Id">@force.Name (@force.Faction) - @force.TotalPoints pts</MudSelectItem>
                     }
                 </MudSelect>
+
+                @if (_isLoadingUnits)
+                {
+                    <MudProgressCircular Color="Color.Warning" Size="Size.Small" Indeterminate="true" Class="mb-3" />
+                }
+                else if (_forceDetail is not null && _forceDetail.Units.Count > 0)
+                {
+                    <MudText Typo="Typo.subtitle1" Class="mb-2" Style="color: #d4af37;">
+                        Select Units (@_selectedTotalPoints / @_pointsLimit pts)
+                    </MudText>
+
+                    @if (_selectedTotalPoints > _pointsLimit)
+                    {
+                        <MudAlert Severity="Severity.Error" Class="mb-2" Dense="true">
+                            Selected units exceed the battle points limit by @(_selectedTotalPoints - _pointsLimit) points.
+                        </MudAlert>
+                    }
+
+                    <MudPaper Class="pa-3 mb-4" Style="background: #1e1e35;">
+                        @foreach (var unit in _forceDetail.Units)
+                        {
+                            <MudCheckBox T="bool"
+                                         Value="@_selectedUnitIds.Contains(unit.Id)"
+                                         ValueChanged="@((bool isChecked) => ToggleUnit(unit.Id, unit.Points, isChecked))"
+                                         Color="Color.Warning"
+                                         Dense="true"
+                                         Class="mb-1">
+                                <MudText>@unit.Name — @unit.Points pts (@unit.DataSheet)</MudText>
+                            </MudCheckBox>
+                        }
+                    </MudPaper>
+                }
+                else if (_forceDetail is not null)
+                {
+                    <MudAlert Severity="Severity.Warning" Class="mb-4" Dense="true">
+                        This force has no units. Add units to the force before recording a battle.
+                    </MudAlert>
+                }
 
                 <MudStack Row="true" Spacing="2">
                     <MudButton Variant="Variant.Filled"
                                Color="Color.Warning"
                                Size="Size.Large"
-                               Disabled="@(!_formIsValid || _isCreating)"
+                               Disabled="@(!CanSubmit)"
                                OnClick="HandleCreate">
                         @if (_isCreating)
                         {
@@ -84,13 +133,23 @@
 @code {
     private MudForm _form = default!;
     private List<ForceResponse>? _forces;
+    private ForceDetailResponse? _forceDetail;
     private bool _isLoadingForces = true;
+    private bool _isLoadingUnits;
     private bool _formIsValid;
     private bool _isCreating;
 
     private DateTime? _battleDate = DateTime.Today;
     private string _mission = string.Empty;
+    private int _pointsLimit = 1000;
     private Guid _selectedForceId;
+    private HashSet<Guid> _selectedUnitIds = new();
+    private int _selectedTotalPoints;
+
+    private bool CanSubmit => _formIsValid
+        && !_isCreating
+        && _selectedUnitIds.Count > 0
+        && _selectedTotalPoints <= _pointsLimit;
 
     protected override async Task OnInitializedAsync()
     {
@@ -106,6 +165,7 @@
             if (_forces?.Count > 0)
             {
                 _selectedForceId = _forces[0].Id;
+                await LoadForceUnits(_selectedForceId);
             }
         }
         catch (Exception ex)
@@ -118,10 +178,49 @@
         }
     }
 
+    private async Task OnForceSelected(Guid forceId)
+    {
+        _selectedForceId = forceId;
+        _selectedUnitIds.Clear();
+        _selectedTotalPoints = 0;
+        await LoadForceUnits(forceId);
+    }
+
+    private async Task LoadForceUnits(Guid forceId)
+    {
+        _isLoadingUnits = true;
+        try
+        {
+            _forceDetail = await ForceService.GetForceAsync(forceId);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading units: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _isLoadingUnits = false;
+        }
+    }
+
+    private void ToggleUnit(Guid unitId, int points, bool isChecked)
+    {
+        if (isChecked)
+        {
+            _selectedUnitIds.Add(unitId);
+            _selectedTotalPoints += points;
+        }
+        else
+        {
+            _selectedUnitIds.Remove(unitId);
+            _selectedTotalPoints -= points;
+        }
+    }
+
     private async Task HandleCreate()
     {
         await _form.ValidateAsync();
-        if (!_formIsValid || _battleDate is null) return;
+        if (!CanSubmit || _battleDate is null) return;
 
         _isCreating = true;
 
@@ -131,15 +230,16 @@
             var utcDate = DateTime.SpecifyKind(_battleDate.Value.Date, DateTimeKind.Utc);
             var battleDate = new DateTimeOffset(utcDate, TimeSpan.Zero);
 
-            // Create the battle
-            var battle = await BattleService.CreateBattleAsync(battleDate, _mission);
+            // Create the battle with points limit
+            var battle = await BattleService.CreateBattleAsync(battleDate, _mission, _pointsLimit);
 
             if (battle is not null)
             {
-                // Add the user's force as a participant
+                // Add the user's force as a participant with selected units
                 var updatedBattle = await BattleService.AddParticipantAsync(
                     battle.Id,
                     _selectedForceId,
+                    _selectedUnitIds.ToList(),
                     selectedForce?.Name);
 
                 if (updatedBattle is not null)

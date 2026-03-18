@@ -2,4 +2,5 @@ namespace CrusadeTracker.Application.Battles.DTOs;
 
 public sealed record CreateBattleRequest(
     DateTimeOffset Date,
-    string Mission);
+    string Mission,
+    int PointsLimit);

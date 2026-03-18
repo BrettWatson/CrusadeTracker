@@ -24,7 +24,7 @@ else
     <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Start" Class="mb-4">
         <MudStack Spacing="1">
             <MudText Typo="Typo.h4" Style="color: #d4af37;">@_battle.Mission</MudText>
-            <MudText Typo="Typo.subtitle1" Style="color: #9a9ab0;">@_battle.Date.ToString("MMMM d, yyyy")</MudText>
+            <MudText Typo="Typo.subtitle1" Style="color: #9a9ab0;">@_battle.Date.ToString("MMMM d, yyyy") — @_battle.PointsLimit pts</MudText>
         </MudStack>
         <MudStack Row="true" Spacing="2">
             <MudButton Variant="Variant.Outlined" Color="Color.Default" Href="/battles">Back to Battles</MudButton>
@@ -59,39 +59,54 @@ else
                     }
                     else
                     {
-                        <MudTable Items="@_battle.Participants" Dense="true" Style="background: transparent;">
-                            <HeaderContent>
-                                <MudTh>Force</MudTh>
-                                <MudTh>Result</MudTh>
-                                <MudTh>Actions</MudTh>
-                            </HeaderContent>
-                            <RowTemplate>
-                                <MudTd DataLabel="Force">
-                                    <MudText>@(context.ForceNameSnapshot ?? "Unknown Force")</MudText>
-                                </MudTd>
-                                <MudTd DataLabel="Result">
-                                    <MudChip T="string" Size="Size.Small" Color="@GetResultColor(context.Result)">
-                                        @context.Result
-                                    </MudChip>
-                                </MudTd>
-                                <MudTd DataLabel="Actions">
-                                    @if (!_battle.IsFinalized)
+                        @foreach (var participant in _battle.Participants)
+                        {
+                            <MudCard Class="mb-3" Style="background: #1e1e35;">
+                                <MudCardContent>
+                                    <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+                                        <MudStack Spacing="0">
+                                            <MudText Typo="Typo.subtitle1" Style="color: #e8e8e8;">@(participant.ForceNameSnapshot ?? "Unknown Force")</MudText>
+                                            <MudText Typo="Typo.caption" Style="color: #9a9ab0;">@participant.Units.Sum(u => u.Points) / @_battle.PointsLimit pts</MudText>
+                                        </MudStack>
+                                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                                            <MudChip T="string" Size="Size.Small" Color="@GetResultColor(participant.Result)">
+                                                @participant.Result
+                                            </MudChip>
+                                            @if (!_battle.IsFinalized)
+                                            {
+                                                <MudButtonGroup Variant="Variant.Outlined" Size="Size.Small">
+                                                    <MudButton Color="Color.Success" OnClick="@(() => SetResult(participant.ForceId, "Victory"))">W</MudButton>
+                                                    <MudButton Color="Color.Error" OnClick="@(() => SetResult(participant.ForceId, "Defeat"))">L</MudButton>
+                                                    <MudButton Color="Color.Default" OnClick="@(() => SetResult(participant.ForceId, "Draw"))">D</MudButton>
+                                                </MudButtonGroup>
+                                            }
+                                        </MudStack>
+                                    </MudStack>
+
+                                    @if (participant.Units.Count > 0)
                                     {
-                                        <MudButtonGroup Variant="Variant.Outlined" Size="Size.Small">
-                                            <MudButton Color="Color.Success" OnClick="@(() => SetResult(context.ForceId, "Victory"))">
-                                                Victory
-                                            </MudButton>
-                                            <MudButton Color="Color.Error" OnClick="@(() => SetResult(context.ForceId, "Defeat"))">
-                                                Defeat
-                                            </MudButton>
-                                            <MudButton Color="Color.Default" OnClick="@(() => SetResult(context.ForceId, "Draw"))">
-                                                Draw
-                                            </MudButton>
-                                        </MudButtonGroup>
+                                        <MudDivider Class="my-2" />
+                                        <MudSimpleTable Dense="true" Style="background: transparent;">
+                                            <thead>
+                                                <tr>
+                                                    <th style="color: #9a9ab0;">Unit</th>
+                                                    <th style="color: #9a9ab0; text-align: right;">Points</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (var unit in participant.Units)
+                                                {
+                                                    <tr>
+                                                        <td style="color: #e8e8e8;">@unit.UnitNameSnapshot</td>
+                                                        <td style="color: #d4af37; text-align: right;">@unit.Points</td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </MudSimpleTable>
                                     }
-                                </MudTd>
-                            </RowTemplate>
-                        </MudTable>
+                                </MudCardContent>
+                            </MudCard>
+                        }
                     }
                 </MudCardContent>
             </MudCard>
@@ -112,6 +127,10 @@ else
                             {
                                 <MudChip T="string" Size="Size.Small" Color="Color.Warning">In Progress</MudChip>
                             }
+                        </MudStack>
+                        <MudStack Row="true" Justify="Justify.SpaceBetween">
+                            <MudText Style="color: #9a9ab0;">Points Limit</MudText>
+                            <MudText Style="color: #d4af37; font-weight: 600;">@_battle.PointsLimit</MudText>
                         </MudStack>
                         <MudStack Row="true" Justify="Justify.SpaceBetween">
                             <MudText Style="color: #9a9ab0;">Participants</MudText>
@@ -199,6 +218,7 @@ else
         var parameters = new DialogParameters<AddParticipantDialog>
         {
             { x => x.BattleId, BattleId },
+            { x => x.PointsLimit, _battle?.PointsLimit ?? 0 },
             { x => x.AvailableForces, availableForces }
         };
 

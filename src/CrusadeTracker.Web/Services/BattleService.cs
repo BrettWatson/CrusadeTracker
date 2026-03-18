@@ -36,9 +36,9 @@ public class BattleService
         }
     }
 
-    public async Task<BattleResponse?> CreateBattleAsync(DateTimeOffset date, string mission)
+    public async Task<BattleResponse?> CreateBattleAsync(DateTimeOffset date, string mission, int pointsLimit)
     {
-        var request = new CreateBattleRequest(date, mission);
+        var request = new CreateBattleRequest(date, mission, pointsLimit);
         var response = await _httpClient.PostAsJsonAsync("api/battles", request);
 
         if (response.IsSuccessStatusCode)
@@ -49,9 +49,9 @@ public class BattleService
         return null;
     }
 
-    public async Task<BattleResponse?> AddParticipantAsync(Guid battleId, Guid forceId, string? forceNameSnapshot = null)
+    public async Task<BattleResponse?> AddParticipantAsync(Guid battleId, Guid forceId, List<Guid> unitIds, string? forceNameSnapshot = null)
     {
-        var request = new AddParticipantRequest(forceId, forceNameSnapshot);
+        var request = new AddParticipantRequest(forceId, unitIds, forceNameSnapshot);
         var response = await _httpClient.PostAsJsonAsync($"api/battles/{battleId}/participants", request);
 
         if (response.IsSuccessStatusCode)

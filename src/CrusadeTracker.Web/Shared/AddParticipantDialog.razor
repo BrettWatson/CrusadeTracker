@@ -1,26 +1,68 @@
 @using MudBlazor
 @using CrusadeTracker.Application.Forces.DTOs
+@using CrusadeTracker.Application.Units.DTOs
 @inject BattleService BattleService
+@inject ForceService ForceService
 
 <MudDialog>
     <DialogContent>
         <MudForm @ref="_form" @bind-IsValid="@_formIsValid">
-            <MudSelect @bind-Value="_selectedForceId"
+            <MudSelect T="Guid"
+                       Value="_selectedForceId"
                        Label="Select Force"
                        Variant="Variant.Outlined"
                        Required="true"
                        RequiredError="Please select a force"
-                       Class="mb-3">
+                       Class="mb-3"
+                       ValueChanged="@((Guid val) => OnForceSelected(val))">
                 @foreach (var force in AvailableForces)
                 {
-                    <MudSelectItem Value="@force.Id">@force.Name (@force.Faction)</MudSelectItem>
+                    <MudSelectItem Value="@force.Id">@force.Name (@force.Faction) - @force.TotalPoints pts</MudSelectItem>
                 }
             </MudSelect>
+
+            @if (_isLoadingUnits)
+            {
+                <MudProgressCircular Color="Color.Warning" Size="Size.Small" Indeterminate="true" Class="mb-3" />
+            }
+            else if (_forceDetail is not null && _forceDetail.Units.Count > 0)
+            {
+                <MudText Typo="Typo.subtitle2" Class="mb-2" Style="color: #d4af37;">
+                    Select Units (@_selectedTotalPoints / @PointsLimit pts)
+                </MudText>
+
+                @if (_selectedTotalPoints > PointsLimit)
+                {
+                    <MudAlert Severity="Severity.Error" Class="mb-2" Dense="true">
+                        Selected units exceed the battle points limit by @(_selectedTotalPoints - PointsLimit) points.
+                    </MudAlert>
+                }
+
+                <MudPaper Class="pa-3 mb-3" Style="background: #1e1e35;">
+                    @foreach (var unit in _forceDetail.Units)
+                    {
+                        <MudCheckBox T="bool"
+                                     Value="@_selectedUnitIds.Contains(unit.Id)"
+                                     ValueChanged="@((bool isChecked) => ToggleUnit(unit.Id, unit.Points, isChecked))"
+                                     Color="Color.Warning"
+                                     Dense="true"
+                                     Class="mb-1">
+                            <MudText>@unit.Name — @unit.Points pts (@unit.DataSheet)</MudText>
+                        </MudCheckBox>
+                    }
+                </MudPaper>
+            }
+            else if (_forceDetail is not null)
+            {
+                <MudAlert Severity="Severity.Warning" Class="mb-3" Dense="true">
+                    This force has no units.
+                </MudAlert>
+            }
         </MudForm>
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="Cancel">Cancel</MudButton>
-        <MudButton Color="Color.Warning" Variant="Variant.Filled" OnClick="Submit" Disabled="@(!_formIsValid || _isSubmitting)">
+        <MudButton Color="Color.Warning" Variant="Variant.Filled" OnClick="Submit" Disabled="@(!CanSubmit)">
             @if (_isSubmitting)
             {
                 <MudProgressCircular Class="mr-2" Size="Size.Small" Indeterminate="true" />
@@ -42,32 +84,84 @@
     public Guid BattleId { get; set; }
 
     [Parameter]
+    public int PointsLimit { get; set; }
+
+    [Parameter]
     public List<ForceResponse> AvailableForces { get; set; } = new();
 
     private MudForm _form = default!;
+    private ForceDetailResponse? _forceDetail;
     private Guid _selectedForceId;
     private bool _formIsValid;
     private bool _isSubmitting;
+    private bool _isLoadingUnits;
+    private HashSet<Guid> _selectedUnitIds = new();
+    private int _selectedTotalPoints;
 
-    protected override void OnInitialized()
+    private bool CanSubmit => _formIsValid
+        && !_isSubmitting
+        && _selectedUnitIds.Count > 0
+        && _selectedTotalPoints <= PointsLimit;
+
+    protected override async Task OnInitializedAsync()
     {
         if (AvailableForces.Count > 0)
         {
             _selectedForceId = AvailableForces[0].Id;
+            await LoadForceUnits(_selectedForceId);
+        }
+    }
+
+    private async Task OnForceSelected(Guid forceId)
+    {
+        _selectedForceId = forceId;
+        _selectedUnitIds.Clear();
+        _selectedTotalPoints = 0;
+        await LoadForceUnits(forceId);
+    }
+
+    private async Task LoadForceUnits(Guid forceId)
+    {
+        _isLoadingUnits = true;
+        try
+        {
+            _forceDetail = await ForceService.GetForceAsync(forceId);
+        }
+        finally
+        {
+            _isLoadingUnits = false;
+        }
+    }
+
+    private void ToggleUnit(Guid unitId, int points, bool isChecked)
+    {
+        if (isChecked)
+        {
+            _selectedUnitIds.Add(unitId);
+            _selectedTotalPoints += points;
+        }
+        else
+        {
+            _selectedUnitIds.Remove(unitId);
+            _selectedTotalPoints -= points;
         }
     }
 
     private async Task Submit()
     {
         await _form.ValidateAsync();
-        if (!_formIsValid) return;
+        if (!CanSubmit) return;
 
         _isSubmitting = true;
 
         try
         {
             var selectedForce = AvailableForces.FirstOrDefault(f => f.Id == _selectedForceId);
-            var result = await BattleService.AddParticipantAsync(BattleId, _selectedForceId, selectedForce?.Name);
+            var result = await BattleService.AddParticipantAsync(
+                BattleId,
+                _selectedForceId,
+                _selectedUnitIds.ToList(),
+                selectedForce?.Name);
 
             if (result is not null)
             {
